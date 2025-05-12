@@ -1,4 +1,81 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://edfun317.github.io/feed.xml" rel="self" type="application/atom+xml"/><link href="https://edfun317.github.io/" rel="alternate" type="text/html" hreflang="en"/><updated>2025-04-01T02:26:41+00:00</updated><id>https://edfun317.github.io/feed.xml</id><title type="html">Backend Engineer</title><subtitle>Backend Engineer with 8 years of experience in developing scalable systems and optimizing performance. </subtitle><entry><title type="html">a post with tabs</title><link href="https://edfun317.github.io/blog/2024/tabs/" rel="alternate" type="text/html" title="a post with tabs"/><published>2024-05-01T00:32:13+00:00</published><updated>2024-05-01T00:32:13+00:00</updated><id>https://edfun317.github.io/blog/2024/tabs</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/tabs/"><![CDATA[<p>This is how a post with <a href="https://github.com/Ovski4/jekyll-tabs">tabs</a> looks like. Note that the tabs could be used for different purposes, not only for code.</p> <h2 id="first-tabs">First tabs</h2> <p>To add tabs, use the following syntax:</p> <div class="language-liquid highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{%</span><span class="w"> </span><span class="nt">tabs</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="cp">%}</span>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://edfun317.github.io/feed.xml" rel="self" type="application/atom+xml"/><link href="https://edfun317.github.io/" rel="alternate" type="text/html" hreflang="en"/><updated>2025-05-12T08:03:41+00:00</updated><id>https://edfun317.github.io/feed.xml</id><title type="html">Backend Engineer</title><subtitle>Backend Engineer with 8 years of experience in developing scalable systems and optimizing performance. </subtitle><entry><title type="html">Golang Mutex 深入理解：原理、使用與陷阱</title><link href="https://edfun317.github.io/blog/2024/golang-mutex-basic/" rel="alternate" type="text/html" title="Golang Mutex 深入理解：原理、使用與陷阱"/><published>2024-05-12T04:31:00+00:00</published><updated>2024-05-12T04:31:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-mutex-basic</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-mutex-basic/"><![CDATA[<h2 id="mutex-的本質">Mutex 的本質</h2> <p>Golang 中的 <code class="language-plaintext highlighter-rouge">sync.Mutex</code> 是一個互斥鎖，用於保護共享資源不被多個 goroutine 同時訪問。本文將深入探討其實現原理和使用方式。</p> <h2 id="底層實現原理">底層實現原理</h2> <h3 id="1-數據結構">1. 數據結構</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Mutex</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">state</span> <span class="kt">int32</span>
+    <span class="n">sema</span>  <span class="kt">uint32</span>
+<span class="p">}</span>
+</code></pre></div></div> <p>Mutex 的內部實現主要包含兩個字段：</p> <ul> <li><code class="language-plaintext highlighter-rouge">state</code>: 表示鎖的狀態</li> <li><code class="language-plaintext highlighter-rouge">sema</code>: 用於控制 goroutine 阻塞喚醒的信號量</li> </ul> <h3 id="2-鎖狀態位">2. 鎖狀態位</h3> <p>state 字段的位元含義：</p> <ul> <li>位元 0: 表示鎖是否被持有（1=locked, 0=unlocked）</li> <li>位元 1: 表示是否有喚醒的 goroutine（1=wakered, 0=not wakered）</li> <li>位元 2: 表示是否處於餓死模式（1=starving, 0=normal）</li> <li>位元 3-31: 等待隊列中的 goroutine 數量</li> </ul> <h2 id="加鎖過程分析">加鎖過程分析</h2> <h3 id="1-快速路徑">1. 快速路徑</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">Mutex</span><span class="p">)</span> <span class="n">Lock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c">// 快速路徑：嘗試直接獲取鎖</span>
+    <span class="k">if</span> <span class="n">atomic</span><span class="o">.</span><span class="n">CompareAndSwapInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">m</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">mutexLocked</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">lockSlow</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-慢速路徑">2. 慢速路徑</h3> <p>當快速路徑失敗時，進入慢速路徑：</p> <ol> <li>自旋等待</li> <li>進入等待隊列</li> <li>餓死模式處理</li> </ol> <h2 id="性能特性">性能特性</h2> <h3 id="1-自旋等待">1. 自旋等待</h3> <ul> <li>在多核系統上，如果鎖競爭不激烈，會先嘗試自旋</li> <li>自旋條件： <ul> <li>當前機器是多核</li> <li>GOMAXPROCS &gt; 1</li> <li>至少有一個其他的正在運行的 P</li> <li>當前 goroutine 的 P 未被禁用</li> </ul> </li> </ul> <h3 id="2-公平性">2. 公平性</h3> <ul> <li>正常模式：新來的 goroutine 和等待的 goroutine 公平競爭</li> <li>餓死模式：優先讓等待時間最長的 goroutine 獲得鎖</li> </ul> <h2 id="使用示例">使用示例</h2> <h3 id="1-基本使用">1. 基本使用</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">mu</span> <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+<span class="k">var</span> <span class="n">count</span> <span class="kt">int</span>
+
+<span class="k">func</span> <span class="n">increment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="n">count</span><span class="o">++</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-結構體內嵌">2. 結構體內嵌</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Counter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">count</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Increment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="o">++</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="常見陷阱">常見陷阱</h2> <h3 id="1-重入問題">1. 重入問題</h3> <p>Mutex 不支持重入，以下代碼會死鎖：</p> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">BadIncrement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Increment</span><span class="p">()</span> <span class="c">// 死鎖！</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-複製問題">2. 複製問題</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">BadCounter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>  <span class="c">// 注意：Mutex 不應該被複製</span>
+    <span class="n">count</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span> <span class="o">:=</span> <span class="n">BadCounter</span><span class="p">{}</span>
+    <span class="n">c2</span> <span class="o">:=</span> <span class="n">c</span>     <span class="c">// 複製了 Mutex！</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>    <span class="c">// c 和 c2 的鎖現在是獨立的</span>
+    <span class="n">c2</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span> <span class="c">// 這不會解開 c 的鎖</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-忘記解鎖">3. 忘記解鎖</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Risk</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">someOperation</span><span class="p">();</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">err</span>  <span class="c">// 忘記解鎖！</span>
+    <span class="p">}</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="k">return</span> <span class="no">nil</span>
+<span class="p">}</span>
+
+<span class="c">// 正確的做法</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Safe</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">someOperation</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="效能優化建議">效能優化建議</h2> <ol> <li>減少鎖的範圍 ```go // 不好的做法 mu.Lock() // 大量非共享資源的操作 process(data) mu.Unlock()</li> </ol> <p>// 好的做法 data := getData() // 不需要鎖的操作放在外面 mu.Lock() // 只鎖定真正需要同步的操作 updateSharedData(data) mu.Unlock()</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+2. 使用細粒度鎖
+```go
+// 不好的做法
+type Database struct {
+    sync.Mutex
+    users    map[string]User
+    products map[string]Product
+}
+
+// 好的做法
+type Database struct {
+    usersMu    sync.Mutex
+    users      map[string]User
+    productsMu sync.Mutex
+    products   map[string]Product
+}
+</code></pre></div></div> <h2 id="總結">總結</h2> <ol> <li>Mutex 是一個簡單但強大的同步原語</li> <li>了解其內部實現有助於正確使用和優化</li> <li>避免常見陷阱：重入、複製、忘記解鎖</li> <li>優化建議：最小化鎖範圍，使用細粒度鎖</li> </ol> <p>在下一篇文章中，我們將探討如何使用 Lock Striping 技術來優化全局鎖的性能。</p>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="mutex"/><category term="synchronization"/><summary type="html"><![CDATA[深入探討 Golang Mutex 的實現原理、使用方式和常見陷阱]]></summary></entry><entry><title type="html">Golang Mutex 的替代方案與優化策略</title><link href="https://edfun317.github.io/blog/2024/golang-mutex-optimization/" rel="alternate" type="text/html" title="Golang Mutex 的替代方案與優化策略"/><published>2024-05-12T04:30:00+00:00</published><updated>2024-05-12T04:30:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-mutex-optimization</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-mutex-optimization/"><![CDATA[<h2 id="前言">前言</h2> <p>在 Go 語言中，<code class="language-plaintext highlighter-rouge">sync.Mutex</code> 是最基本的同步原語之一，常被用於保護共享資源的訪問。然而，當在全局範圍內使用 Mutex 時，可能會帶來一些性能和可維護性的問題。本文將深入探討這些問題，並提供多種優化方向和替代方案。</p> <h2 id="目錄">目錄</h2> <ol> <li><a href="#mutex-基礎概念">Mutex 基礎概念</a> <ul> <li>Mutex 的工作原理</li> <li>全局 Mutex 的使用場景</li> <li>使用全局 Mutex 的潛在問題</li> </ul> </li> <li><a href="#lock-striping-分段鎖">Lock Striping 分段鎖</a> <ul> <li>原理與實現</li> <li>性能影響</li> <li>適用場景</li> </ul> </li> <li><a href="#無鎖設計-lock-free">無鎖設計 Lock-Free</a> <ul> <li>atomic 操作</li> <li>CAS (Compare-And-Swap)</li> <li>實現示例</li> </ul> </li> <li><a href="#讀寫分離">讀寫分離</a> <ul> <li>sync.RWMutex</li> <li>單寫多讀場景優化</li> <li>效能比較</li> </ul> </li> <li><a href="#channel-based-同步">Channel-based 同步</a> <ul> <li>CSP 模型應用</li> <li>worker pool 模式</li> <li>實現範例</li> </ul> </li> <li><a href="#並發數據結構">並發數據結構</a> <ul> <li>sync.Map</li> <li>並發安全的 slice 實現</li> <li>自定義並發數據結構</li> </ul> </li> <li><a href="#context-based-控制">Context-based 控制</a> <ul> <li>Context 在併發控制中的應用</li> <li>超時與取消機制</li> <li>最佳實踐</li> </ul> </li> <li><a href="#效能分析與優化">效能分析與優化</a> <ul> <li>常見效能瓶頸</li> <li>監控與分析工具</li> <li>優化策略</li> </ul> </li> <li><a href="#設計模式與最佳實踐">設計模式與最佳實踐</a> <ul> <li>常見的併發模式</li> <li>代碼組織方式</li> <li>錯誤處理策略</li> </ul> </li> </ol> <h2 id="待深入研究的方向">待深入研究的方向</h2> <p>接下來將針對每個章節進行深入研究，包括但不限於：</p> <ol> <li>各種方案的具體實現代碼</li> <li>效能測試與比較</li> <li>實際應用案例分析</li> <li>不同場景下的選擇建議</li> </ol> <h2 id="結論">結論</h2> <p>本文提供了一個框架，用於深入探討 Golang 中全局 Mutex 的替代方案和優化策略。每個方向都值得進行更詳細的研究和實驗，以找到最適合特定場景的解決方案。</p> <p>後續文章將針對每個章節進行更深入的技術探討和實踐分析。</p>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="mutex"/><category term="optimization"/><summary type="html"><![CDATA[深入探討 Golang Mutex 在全局使用時的優化方向與替代方案]]></summary></entry><entry><title type="html">a post with tabs</title><link href="https://edfun317.github.io/blog/2024/tabs/" rel="alternate" type="text/html" title="a post with tabs"/><published>2024-05-01T00:32:13+00:00</published><updated>2024-05-01T00:32:13+00:00</updated><id>https://edfun317.github.io/blog/2024/tabs</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/tabs/"><![CDATA[<p>This is how a post with <a href="https://github.com/Ovski4/jekyll-tabs">tabs</a> looks like. Note that the tabs could be used for different purposes, not only for code.</p> <h2 id="first-tabs">First tabs</h2> <p>To add tabs, use the following syntax:</p> <div class="language-liquid highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{%</span><span class="w"> </span><span class="nt">tabs</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="cp">%}</span>
 
 <span class="cp">{%</span><span class="w"> </span><span class="nt">tab</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="nv">tab-name-1</span><span class="w"> </span><span class="cp">%}</span>
 
@@ -13,16 +90,16 @@ Content 2
 <span class="cp">{%</span><span class="w"> </span><span class="nt">endtab</span><span class="w"> </span><span class="cp">%}</span>
 
 <span class="cp">{%</span><span class="w"> </span><span class="nt">endtabs</span><span class="w"> </span><span class="cp">%}</span>
-</code></pre></div></div> <p>With this you can generate visualizations like:</p> <ul id="log" class="tab" data-tab="adf9de86-0a27-41d2-a34c-f0c3d591e78e" data-name="log"> <li class="active" id="log-php"> <a href="#">php </a> </li> <li id="log-js"> <a href="#">js </a> </li> <li id="log-ruby"> <a href="#">ruby </a> </li> </ul> <ul class="tab-content" id="adf9de86-0a27-41d2-a34c-f0c3d591e78e" data-name="log"> <li class="active"> <div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">var_dump</span><span class="p">(</span><span class="s1">'hello'</span><span class="p">);</span>
+</code></pre></div></div> <p>With this you can generate visualizations like:</p> <ul id="log" class="tab" data-tab="8ee3625a-9ddf-43db-9878-a120dce1bea3" data-name="log"> <li class="active" id="log-php"> <a href="#">php </a> </li> <li id="log-js"> <a href="#">js </a> </li> <li id="log-ruby"> <a href="#">ruby </a> </li> </ul> <ul class="tab-content" id="8ee3625a-9ddf-43db-9878-a120dce1bea3" data-name="log"> <li class="active"> <div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">var_dump</span><span class="p">(</span><span class="s1">'hello'</span><span class="p">);</span>
 </code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">hello</span><span class="dl">"</span><span class="p">);</span>
 </code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pputs</span> <span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span>
-</code></pre></div></div> </li> </ul> <h2 id="another-example">Another example</h2> <ul id="data-struct" class="tab" data-tab="9a57e161-e57a-4899-bf97-1e89ec2cdb6e" data-name="data-struct"> <li class="active" id="data-struct-yaml"> <a href="#">yaml </a> </li> <li id="data-struct-json"> <a href="#">json </a> </li> </ul> <ul class="tab-content" id="9a57e161-e57a-4899-bf97-1e89ec2cdb6e" data-name="data-struct"> <li class="active"> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">hello</span><span class="pi">:</span>
+</code></pre></div></div> </li> </ul> <h2 id="another-example">Another example</h2> <ul id="data-struct" class="tab" data-tab="3ebca797-35ee-4749-9d4c-27154649005e" data-name="data-struct"> <li class="active" id="data-struct-yaml"> <a href="#">yaml </a> </li> <li id="data-struct-json"> <a href="#">json </a> </li> </ul> <ul class="tab-content" id="3ebca797-35ee-4749-9d4c-27154649005e" data-name="data-struct"> <li class="active"> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">hello</span><span class="pi">:</span>
   <span class="pi">-</span> <span class="s2">"</span><span class="s">whatsup"</span>
   <span class="pi">-</span> <span class="s2">"</span><span class="s">hi"</span>
 </code></pre></div></div> </li> <li> <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="nl">"hello"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"whatsup"</span><span class="p">,</span><span class="w"> </span><span class="s2">"hi"</span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
-</span></code></pre></div></div> </li> </ul> <h2 id="tabs-for-something-else">Tabs for something else</h2> <ul id="something-else" class="tab" data-tab="0ed8cb0d-4a01-4e2d-93a1-4f58515e1f98" data-name="something-else"> <li class="active" id="something-else-text"> <a href="#">text </a> </li> <li id="something-else-quote"> <a href="#">quote </a> </li> <li id="something-else-list"> <a href="#">list </a> </li> </ul> <ul class="tab-content" id="0ed8cb0d-4a01-4e2d-93a1-4f58515e1f98" data-name="something-else"> <li class="active"> <p>Regular text</p> </li> <li> <blockquote> <p>A quote</p> </blockquote> </li> <li> <p>Hipster list</p> <ul> <li>brunch</li> <li>fixie</li> <li>raybans</li> <li>messenger bag</li> </ul> </li> </ul>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included tabs in a post could look like]]></summary></entry><entry><title type="html">a post with typograms</title><link href="https://edfun317.github.io/blog/2024/typograms/" rel="alternate" type="text/html" title="a post with typograms"/><published>2024-04-29T23:36:10+00:00</published><updated>2024-04-29T23:36:10+00:00</updated><id>https://edfun317.github.io/blog/2024/typograms</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/typograms/"><![CDATA[<p>This is an example post with some <a href="https://github.com/google/typograms/">typograms</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
+</span></code></pre></div></div> </li> </ul> <h2 id="tabs-for-something-else">Tabs for something else</h2> <ul id="something-else" class="tab" data-tab="ba015a6c-73c0-4def-8110-5d780cfd4961" data-name="something-else"> <li class="active" id="something-else-text"> <a href="#">text </a> </li> <li id="something-else-quote"> <a href="#">quote </a> </li> <li id="something-else-list"> <a href="#">list </a> </li> </ul> <ul class="tab-content" id="ba015a6c-73c0-4def-8110-5d780cfd4961" data-name="something-else"> <li class="active"> <p>Regular text</p> </li> <li> <blockquote> <p>A quote</p> </blockquote> </li> <li> <p>Hipster list</p> <ul> <li>brunch</li> <li>fixie</li> <li>raybans</li> <li>messenger bag</li> </ul> </li> </ul>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included tabs in a post could look like]]></summary></entry><entry><title type="html">a post with typograms</title><link href="https://edfun317.github.io/blog/2024/typograms/" rel="alternate" type="text/html" title="a post with typograms"/><published>2024-04-29T23:36:10+00:00</published><updated>2024-04-29T23:36:10+00:00</updated><id>https://edfun317.github.io/blog/2024/typograms</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/typograms/"><![CDATA[<p>This is an example post with some <a href="https://github.com/google/typograms/">typograms</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
 </span><span class="sb">+----+
 |    |---&gt; My first diagram!
 +----+</span>
@@ -774,124 +851,4 @@ index 3bb754ac..a34839c0 100644
     }
   }
 }
-</code></pre> <p>This plot supports both light and dark themes.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included vega lite code could look like]]></summary></entry><entry><title type="html">a post with geojson</title><link href="https://edfun317.github.io/blog/2024/geojson-map/" rel="alternate" type="text/html" title="a post with geojson"/><published>2024-01-26T17:57:00+00:00</published><updated>2024-01-26T17:57:00+00:00</updated><id>https://edfun317.github.io/blog/2024/geojson-map</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/geojson-map/"><![CDATA[<p>This is an example post with some <a href="https://geojson.org/">geojson</a> code. The support is provided thanks to <a href="https://leafletjs.com/">Leaflet</a>. To create your own visualization, go to <a href="https://geojson.io/">geojson.io</a>.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">geojson
-</span><span class="sb">{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          [
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ]
-          ]
-        ],
-        "type": "Polygon"
-      }
-    }
-  ]
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-geojson">{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          [
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ]
-          ]
-        ],
-        "type": "Polygon"
-      }
-    }
-  ]
-}
-</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><category term="maps"/><summary type="html"><![CDATA[this is what included geojson code could look like]]></summary></entry><entry><title type="html">a post with echarts</title><link href="https://edfun317.github.io/blog/2024/echarts/" rel="alternate" type="text/html" title="a post with echarts"/><published>2024-01-26T16:03:00+00:00</published><updated>2024-01-26T16:03:00+00:00</updated><id>https://edfun317.github.io/blog/2024/echarts</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/echarts/"><![CDATA[<p>This is an example post with some <a href="https://echarts.apache.org/">echarts</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">echarts
-</span><span class="sb">{
-  "title": {
-    "text": "ECharts Getting Started Example"
-  },
-  "responsive": true,
-  "tooltip": {},
-  "legend": {
-    "top": "30px",
-    "data": ["sales"]
-  },
-  "xAxis": {
-    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
-  },
-  "yAxis": {},
-  "series": [
-    {
-      "name": "sales",
-      "type": "bar",
-      "data": [5, 20, 36, 10, 10, 20]
-    }
-  ]
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-echarts">{
-  "title": {
-    "text": "ECharts Getting Started Example"
-  },
-  "responsive": true,
-  "tooltip": {},
-  "legend": {
-    "top": "30px",
-    "data": ["sales"]
-  },
-  "xAxis": {
-    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
-  },
-  "yAxis": {},
-  "series": [
-    {
-      "name": "sales",
-      "type": "bar",
-      "data": [5, 20, 36, 10, 10, 20]
-    }
-  ]
-}
-</code></pre> <p>Note that this library offer support for both light and dark themes. You can switch between them using the theme switcher in the top right corner of the page.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included echarts code could look like]]></summary></entry></feed>
+</code></pre> <p>This plot supports both light and dark themes.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included vega lite code could look like]]></summary></entry></feed>
