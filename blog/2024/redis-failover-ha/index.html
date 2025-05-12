@@ -1,0 +1,247 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Redis Failover and High Availability - Part 4 | Backend Engineer </title> <meta name="author" content="Ed Fan"> <meta name="description" content="Deep dive into Redis failover mechanisms and high availability configurations"> <meta name="keywords" content="backend-engineer, software-development, system-architecture, performance-optimization"> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?d41d8cd98f00b204e9800998ecf8427e"> <link rel="canonical" href="https://edfun317.github.io/blog/2024/redis-failover-ha/"> <script src="/assets/js/theme.js?a5ca4084d3b81624bcfa01156dae2b8e"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>initTheme();</script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Backend Engineer </a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item "> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item "> <a class="nav-link" href="/publications/">publications </a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects </a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">cv </a> </li> <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li> <li class="nav-item "> <a class="nav-link" href="/people/">people </a> </li> <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus </a> <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item " href="/publications/">publications</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/projects/">projects</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/blog/">blog</a> </div> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="ti ti-sun-moon" id="light-toggle-system"></i> <i class="ti ti-moon-filled" id="light-toggle-dark"></i> <i class="ti ti-sun-filled" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="post"> <header class="post-header"> <h1 class="post-title">Redis Failover and High Availability - Part 4</h1> <p class="post-meta"> Created in May 12, 2024 </p> <p class="post-tags"> <a href="/blog/2024"> <i class="fa-solid fa-calendar fa-sm"></i> 2024 </a>   ·   <a href="/blog/tag/redis"> <i class="fa-solid fa-hashtag fa-sm"></i> redis</a>   <a href="/blog/tag/high-availability"> <i class="fa-solid fa-hashtag fa-sm"></i> high-availability</a>   <a href="/blog/tag/failover"> <i class="fa-solid fa-hashtag fa-sm"></i> failover</a>   <a href="/blog/tag/distributed-systems"> <i class="fa-solid fa-hashtag fa-sm"></i> distributed-systems</a>     ·   <a href="/blog/category/database"> <i class="fa-solid fa-tag fa-sm"></i> database</a>   </p> </header> <article class="post-content"> <div id="markdown-content"> <h1 id="redis-failover-and-high-availability">Redis Failover and High Availability</h1> <p>High availability in Redis is achieved through a combination of replication, automatic failover, and monitoring. This post explores these mechanisms in detail.</p> <h2 id="redis-sentinel">Redis Sentinel</h2> <h3 id="architecture">Architecture</h3> <pre><code class="language-mermaid">graph TB
+    subgraph Sentinel Cluster
+    S1[Sentinel 1]
+    S2[Sentinel 2]
+    S3[Sentinel 3]
+    end
+    
+    subgraph Redis Servers
+    M[Master] --&gt; R1[Replica 1]
+    M --&gt; R2[Replica 2]
+    end
+    
+    S1 --&gt; M
+    S2 --&gt; M
+    S3 --&gt; M
+    S1 -.-&gt; R1
+    S1 -.-&gt; R2
+</code></pre> <h3 id="sentinel-configuration">Sentinel Configuration</h3> <div class="language-conf highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">port</span> <span class="m">26379</span>
+<span class="n">sentinel</span> <span class="n">monitor</span> <span class="n">mymaster</span> <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span> <span class="m">6379</span> <span class="m">2</span>
+<span class="n">sentinel</span> <span class="n">down</span>-<span class="n">after</span>-<span class="n">milliseconds</span> <span class="n">mymaster</span> <span class="m">5000</span>
+<span class="n">sentinel</span> <span class="n">failover</span>-<span class="n">timeout</span> <span class="n">mymaster</span> <span class="m">60000</span>
+<span class="n">sentinel</span> <span class="n">parallel</span>-<span class="n">syncs</span> <span class="n">mymaster</span> <span class="m">1</span>
+</code></pre></div></div> <h3 id="implementation-details">Implementation Details</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RedisSentinel</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">sentinel_nodes</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">sentinels</span> <span class="o">=</span> <span class="n">sentinel_nodes</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">quorum</span> <span class="o">=</span> <span class="nf">len</span><span class="p">(</span><span class="n">sentinel_nodes</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+    
+    <span class="k">def</span> <span class="nf">monitor_master</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">master_name</span><span class="p">,</span> <span class="n">master_host</span><span class="p">,</span> <span class="n">master_port</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Configure sentinel monitoring</span><span class="sh">"""</span>
+        <span class="k">for</span> <span class="n">sentinel</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">sentinels</span><span class="p">:</span>
+            <span class="n">sentinel</span><span class="p">.</span><span class="nf">execute_command</span><span class="p">(</span>
+                <span class="sh">"</span><span class="s">SENTINEL</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">MONITOR</span><span class="sh">"</span><span class="p">,</span>
+                <span class="n">master_name</span><span class="p">,</span> <span class="n">master_host</span><span class="p">,</span> <span class="n">master_port</span><span class="p">,</span>
+                <span class="n">self</span><span class="p">.</span><span class="n">quorum</span>
+            <span class="p">)</span>
+</code></pre></div></div> <h2 id="automatic-failover">Automatic Failover</h2> <h3 id="detection-phase">Detection Phase</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">FailureDetector</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">timeout_ms</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout_ms</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">last_response</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">def</span> <span class="nf">check_node</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">last_ping_time</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Check if node is down</span><span class="sh">"""</span>
+        <span class="k">if</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">last_ping_time</span> <span class="o">&gt;</span> <span class="n">self</span><span class="p">.</span><span class="n">timeout</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sh">"</span><span class="s">SDOWN</span><span class="sh">"</span>  <span class="c1"># Subjectively down
+</span>        <span class="k">return</span> <span class="sh">"</span><span class="s">ONLINE</span><span class="sh">"</span>
+</code></pre></div></div> <h3 id="consensus-building">Consensus Building</h3> <pre><code class="language-mermaid">sequenceDiagram
+    participant S1 as Sentinel 1
+    participant S2 as Sentinel 2
+    participant S3 as Sentinel 3
+    
+    S1-&gt;&gt;S2: SENTINEL is-master-down-by-addr
+    S1-&gt;&gt;S3: SENTINEL is-master-down-by-addr
+    S2--&gt;&gt;S1: Master is down
+    S3--&gt;&gt;S1: Master is down
+    Note over S1: Quorum reached
+</code></pre> <h3 id="failover-process">Failover Process</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">FailoverProcess</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">sentinel_cluster</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">sentinel_cluster</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute_failover</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">master_name</span><span class="p">):</span>
+        <span class="c1"># Phase 1: Leader election
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">self</span><span class="p">.</span><span class="n">cluster</span><span class="p">.</span><span class="nf">elect_leader</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1"># Phase 2: Select new master
+</span>        <span class="n">new_master</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">select_new_master</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">new_master</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1"># Phase 3: Promote replica to master
+</span>        <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="nf">promote_replica</span><span class="p">(</span><span class="n">new_master</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1"># Phase 4: Reconfigure other replicas
+</span>        <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="nf">reconfigure_replicas</span><span class="p">(</span><span class="n">new_master</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    
+    <span class="k">def</span> <span class="nf">select_new_master</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Select the best replica to promote</span><span class="sh">"""</span>
+        <span class="n">replicas</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">cluster</span><span class="p">.</span><span class="nf">get_replicas</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nf">max</span><span class="p">(</span><span class="n">replicas</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">r</span><span class="p">.</span><span class="n">priority</span><span class="p">,</span>
+            <span class="n">r</span><span class="p">.</span><span class="n">replication_offset</span><span class="p">,</span>
+            <span class="n">r</span><span class="p">.</span><span class="n">run_id</span>
+        <span class="p">))</span>
+</code></pre></div></div> <h2 id="split-brain-prevention">Split-brain Prevention</h2> <h3 id="network-partition-handling">Network Partition Handling</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NetworkPartitionHandler</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">min_replicas</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">min_replicas</span> <span class="o">=</span> <span class="n">min_replicas</span>
+    
+    <span class="k">def</span> <span class="nf">can_process_writes</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">visible_replicas</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Check if master can accept writes</span><span class="sh">"""</span>
+        <span class="k">return</span> <span class="nf">len</span><span class="p">(</span><span class="n">visible_replicas</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">min_replicas</span>
+    
+    <span class="k">def</span> <span class="nf">handle_partition</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">node_type</span><span class="p">,</span> <span class="n">visible_nodes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">node_type</span> <span class="o">==</span> <span class="sh">"</span><span class="s">master</span><span class="sh">"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">self</span><span class="p">.</span><span class="nf">can_process_writes</span><span class="p">(</span><span class="n">visible_nodes</span><span class="p">):</span>
+                <span class="k">return</span> <span class="sh">"</span><span class="s">stop_writes</span><span class="sh">"</span>
+        <span class="k">return</span> <span class="sh">"</span><span class="s">continue_operation</span><span class="sh">"</span>
+</code></pre></div></div> <h3 id="quorum-management">Quorum Management</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">calculate_quorum_status</span><span class="p">(</span><span class="n">total_sentinels</span><span class="p">):</span>
+    <span class="sh">"""</span><span class="s">Calculate minimum sentinels needed</span><span class="sh">"""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="sh">'</span><span class="s">minimum</span><span class="sh">'</span><span class="p">:</span> <span class="p">(</span><span class="n">total_sentinels</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="sh">'</span><span class="s">recommended</span><span class="sh">'</span><span class="p">:</span> <span class="p">(</span><span class="n">total_sentinels</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">QuorumManager</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">total_sentinels</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">quorum</span> <span class="o">=</span> <span class="nf">calculate_quorum_status</span><span class="p">(</span><span class="n">total_sentinels</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">has_quorum</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">available_sentinels</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nf">len</span><span class="p">(</span><span class="n">available_sentinels</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">quorum</span><span class="p">[</span><span class="sh">'</span><span class="s">minimum</span><span class="sh">'</span><span class="p">]</span>
+</code></pre></div></div> <h2 id="high-availability-configuration">High Availability Configuration</h2> <h3 id="redis-configuration">Redis Configuration</h3> <div class="language-conf highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master node
+</span><span class="n">port</span> <span class="m">6379</span>
+<span class="n">requirepass</span> <span class="s2">"strong_password"</span>
+<span class="n">masterauth</span> <span class="s2">"strong_password"</span>
+<span class="n">protected</span>-<span class="n">mode</span> <span class="n">yes</span>
+
+<span class="c"># Replica node
+</span><span class="n">port</span> <span class="m">6380</span>
+<span class="n">replicaof</span> <span class="m">127</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">1</span> <span class="m">6379</span>
+<span class="n">masterauth</span> <span class="s2">"strong_password"</span>
+<span class="n">replica</span>-<span class="n">read</span>-<span class="n">only</span> <span class="n">yes</span>
+</code></pre></div></div> <h3 id="persistence-settings">Persistence Settings</h3> <div class="language-conf highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># AOF configuration
+</span><span class="n">appendonly</span> <span class="n">yes</span>
+<span class="n">appendfsync</span> <span class="n">everysec</span>
+<span class="n">no</span>-<span class="n">appendfsync</span>-<span class="n">on</span>-<span class="n">rewrite</span> <span class="n">yes</span>
+<span class="n">auto</span>-<span class="n">aof</span>-<span class="n">rewrite</span>-<span class="n">percentage</span> <span class="m">100</span>
+<span class="n">auto</span>-<span class="n">aof</span>-<span class="n">rewrite</span>-<span class="n">min</span>-<span class="n">size</span> <span class="m">64</span><span class="n">mb</span>
+
+<span class="c"># RDB configuration
+</span><span class="n">save</span> <span class="m">900</span> <span class="m">1</span>
+<span class="n">save</span> <span class="m">300</span> <span class="m">10</span>
+<span class="n">save</span> <span class="m">60</span> <span class="m">10000</span>
+</code></pre></div></div> <h2 id="monitoring-and-maintenance">Monitoring and Maintenance</h2> <h3 id="health-checks">Health Checks</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">HealthChecker</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">redis_cluster</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">redis_cluster</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">check_cluster_health</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="sh">'</span><span class="s">nodes</span><span class="sh">'</span><span class="p">:</span> <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="nf">check_nodes</span><span class="p">(),</span>
+            <span class="sh">'</span><span class="s">slots</span><span class="sh">'</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="nf">check_slots</span><span class="p">(),</span>
+            <span class="sh">'</span><span class="s">replication</span><span class="sh">'</span><span class="p">:</span> <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="nf">check_replication</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">results</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">check_nodes</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="n">node_status</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">cluster</span><span class="p">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">node</span><span class="p">.</span><span class="nf">ping</span><span class="p">()</span>
+                <span class="n">node_status</span><span class="p">[</span><span class="n">node</span><span class="p">.</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="sh">'</span><span class="s">alive</span><span class="sh">'</span> <span class="k">if</span> <span class="n">response</span> <span class="k">else</span> <span class="sh">'</span><span class="s">dead</span><span class="sh">'</span>
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">node_status</span><span class="p">[</span><span class="n">node</span><span class="p">.</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">'</span><span class="s">error: </span><span class="si">{</span><span class="nf">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="sh">'</span>
+        <span class="k">return</span> <span class="n">node_status</span>
+</code></pre></div></div> <h3 id="metrics-collection">Metrics Collection</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RedisMetricsCollector</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">redis_node</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">redis_node</span>
+    
+    <span class="k">def</span> <span class="nf">collect_metrics</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="sh">'</span><span class="s">memory</span><span class="sh">'</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="nf">get_memory_metrics</span><span class="p">(),</span>
+            <span class="sh">'</span><span class="s">clients</span><span class="sh">'</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="nf">get_client_metrics</span><span class="p">(),</span>
+            <span class="sh">'</span><span class="s">operations</span><span class="sh">'</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="nf">get_operation_metrics</span><span class="p">()</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">get_memory_metrics</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">node</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="sh">'</span><span class="s">memory</span><span class="sh">'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="sh">'</span><span class="s">used_memory</span><span class="sh">'</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="sh">'</span><span class="s">used_memory</span><span class="sh">'</span><span class="p">],</span>
+            <span class="sh">'</span><span class="s">used_memory_rss</span><span class="sh">'</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="sh">'</span><span class="s">used_memory_rss</span><span class="sh">'</span><span class="p">],</span>
+            <span class="sh">'</span><span class="s">mem_fragmentation_ratio</span><span class="sh">'</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="sh">'</span><span class="s">mem_fragmentation_ratio</span><span class="sh">'</span><span class="p">]</span>
+        <span class="p">}</span>
+</code></pre></div></div> <h2 id="disaster-recovery">Disaster Recovery</h2> <h3 id="backup-strategy">Backup Strategy</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RedisBackup</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">redis_node</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">redis_node</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">create_backup</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">backup_path</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Create backup using RDB</span><span class="sh">"""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Save current state
+</span>            <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="n">node</span><span class="p">.</span><span class="nf">bgsave</span><span class="p">()</span>
+            
+            <span class="c1"># Wait for RDB completion
+</span>            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="k">await</span> <span class="n">self</span><span class="p">.</span><span class="n">node</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="sh">'</span><span class="s">persistence</span><span class="sh">'</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="sh">'</span><span class="s">rdb_bgsave_in_progress</span><span class="sh">'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="p">.</span><span class="nf">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            
+            <span class="c1"># Copy RDB file
+</span>            <span class="n">shutil</span><span class="p">.</span><span class="nf">copy</span><span class="p">(</span>
+                <span class="n">self</span><span class="p">.</span><span class="n">node</span><span class="p">.</span><span class="nf">config_get</span><span class="p">(</span><span class="sh">'</span><span class="s">dbfilename</span><span class="sh">'</span><span class="p">),</span>
+                <span class="n">backup_path</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Backup failed: </span><span class="si">{</span><span class="nf">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</code></pre></div></div> <h3 id="recovery-procedures">Recovery Procedures</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RedisRecovery</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">cluster</span>
+    
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">recover_node</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">backup_path</span><span class="p">):</span>
+        <span class="sh">"""</span><span class="s">Recover a failed node</span><span class="sh">"""</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">self</span><span class="p">.</span><span class="n">stop_node</span><span class="p">,</span>
+            <span class="n">self</span><span class="p">.</span><span class="n">restore_backup</span><span class="p">,</span>
+            <span class="n">self</span><span class="p">.</span><span class="n">start_node</span><span class="p">,</span>
+            <span class="n">self</span><span class="p">.</span><span class="n">verify_recovery</span>
+        <span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">await</span> <span class="nf">step</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="n">backup_path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Recovery step failed: </span><span class="si">{</span><span class="nf">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="sh">"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</code></pre></div></div> <h2 id="best-practices">Best Practices</h2> <ol> <li>Sentinel Configuration <div class="language-python highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">configure_sentinel</span><span class="p">(</span><span class="n">sentinel_count</span><span class="p">):</span>
+ <span class="k">return</span> <span class="p">{</span>
+     <span class="sh">'</span><span class="s">quorum</span><span class="sh">'</span><span class="p">:</span> <span class="n">math</span><span class="p">.</span><span class="nf">ceil</span><span class="p">(</span><span class="n">sentinel_count</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
+     <span class="sh">'</span><span class="s">down_after_milliseconds</span><span class="sh">'</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">failover_timeout</span><span class="sh">'</span><span class="p">:</span> <span class="mi">60000</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">parallel_syncs</span><span class="sh">'</span><span class="p">:</span> <span class="mi">1</span>
+ <span class="p">}</span>
+</code></pre></div> </div> </li> <li>Network Requirements <div class="language-python highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check_network_requirements</span><span class="p">():</span>
+ <span class="k">return</span> <span class="p">{</span>
+     <span class="sh">'</span><span class="s">max_latency</span><span class="sh">'</span><span class="p">:</span> <span class="sh">'</span><span class="s">10ms</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">bandwidth</span><span class="sh">'</span><span class="p">:</span> <span class="sh">'</span><span class="s">100Mbps</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">reliability</span><span class="sh">'</span><span class="p">:</span> <span class="sh">'</span><span class="s">99.99%</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">port_requirements</span><span class="sh">'</span><span class="p">:</span> <span class="p">[</span>
+         <span class="mi">6379</span><span class="p">,</span>  <span class="c1"># Redis
+</span>         <span class="mi">26379</span><span class="p">,</span> <span class="c1"># Sentinel
+</span>         <span class="mi">16379</span>  <span class="c1"># Cluster bus
+</span>     <span class="p">]</span>
+ <span class="p">}</span>
+</code></pre></div> </div> </li> <li>Monitoring Checklist <div class="language-python highlighter-rouge"> <div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">monitoring_checklist</span><span class="p">():</span>
+ <span class="k">return</span> <span class="p">[</span>
+     <span class="sh">'</span><span class="s">Memory usage</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Network latency</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Replication offset</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Connected clients</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Command execution rate</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Keyspace hits/misses</span><span class="sh">'</span><span class="p">,</span>
+     <span class="sh">'</span><span class="s">Sentinel quorum status</span><span class="sh">'</span>
+ <span class="p">]</span>
+</code></pre></div> </div> </li> </ol> <h2 id="references">References</h2> <ol> <li>Redis Sentinel Documentation</li> <li>Redis High Availability Guide</li> <li>Redis Cluster Administration</li> </ol> </div> </article> <br> <hr> <br> <ul class="list-disc pl-8"></ul> <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2> <p class="mb-2">Here are some more articles you might like to read next:</p> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/redis-cluster-mode/">Understanding Redis Cluster Mode - Part 2</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/redis-hash-slots/">Redis Hash Slots and Sharding Mechanisms - Part 3</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/redis-architecture-sharding/">Redis Architecture and Data Distribution - Part 1</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/k6-performance-testing/">Performance Testing with K6 - A Practical Guide</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/code-diff/">a post with code diff</a> </li> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Ed Fan. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?b7816bd189846d29eded8745f9c4cf77"></script> <script defer src="/assets/js/copy_code.js?12775fdf7f95e901d7119054556e495f" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script type="text/javascript">window.MathJax={tex:{tags:"ams"}};</script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.min.js"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script> <script type="text/javascript">function progressBarSetup(){"max"in document.createElement("progress")?(initializeProgressElement(),$(document).on("scroll",function(){progressBar.attr({value:getCurrentScrollPosition()})}),$(window).on("resize",initializeProgressElement)):(resizeProgressBar(),$(document).on("scroll",resizeProgressBar),$(window).on("resize",resizeProgressBar))}function getCurrentScrollPosition(){return $(window).scrollTop()}function initializeProgressElement(){let e=$("#navbar").outerHeight(!0);$("body").css({"padding-top":e}),$("progress-container").css({"padding-top":e}),progressBar.css({top:e}),progressBar.attr({max:getDistanceToScroll(),value:getCurrentScrollPosition()})}function getDistanceToScroll(){return $(document).height()-$(window).height()}function resizeProgressBar(){progressBar.css({width:getWidthPercentage()+"%"})}function getWidthPercentage(){return getCurrentScrollPosition()/getDistanceToScroll()*100}const progressBar=$("#progress");window.onload=function(){setTimeout(progressBarSetup,50)};</script> </body> </html>
