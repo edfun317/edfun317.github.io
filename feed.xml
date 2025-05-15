@@ -1,4 +1,75 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://edfun317.github.io/feed.xml" rel="self" type="application/atom+xml"/><link href="https://edfun317.github.io/" rel="alternate" type="text/html" hreflang="en"/><updated>2025-05-12T08:41:56+00:00</updated><id>https://edfun317.github.io/feed.xml</id><title type="html">Backend Engineer</title><subtitle>Backend Engineer with 8 years of experience in developing scalable systems and optimizing performance. </subtitle><entry><title type="html">Redis Failover and High Availability - Part 4</title><link href="https://edfun317.github.io/blog/2024/redis-failover-ha/" rel="alternate" type="text/html" title="Redis Failover and High Availability - Part 4"/><published>2024-05-12T09:15:00+00:00</published><updated>2024-05-12T09:15:00+00:00</updated><id>https://edfun317.github.io/blog/2024/redis-failover-ha</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/redis-failover-ha/"><![CDATA[<h1 id="redis-failover-and-high-availability">Redis Failover and High Availability</h1> <p>High availability in Redis is achieved through a combination of replication, automatic failover, and monitoring. This post explores these mechanisms in detail.</p> <h2 id="redis-sentinel">Redis Sentinel</h2> <h3 id="architecture">Architecture</h3> <pre><code class="language-mermaid">graph TB
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://edfun317.github.io/feed.xml" rel="self" type="application/atom+xml"/><link href="https://edfun317.github.io/" rel="alternate" type="text/html" hreflang="en"/><updated>2025-05-15T10:24:09+00:00</updated><id>https://edfun317.github.io/feed.xml</id><title type="html">Backend Engineer</title><subtitle>Backend Engineer with 8 years of experience in developing scalable systems and optimizing performance. </subtitle><entry><title type="html">Understanding CAP Theorem in Distributed Systems</title><link href="https://edfun317.github.io/blog/2024/cap-theorem-basics/" rel="alternate" type="text/html" title="Understanding CAP Theorem in Distributed Systems"/><published>2024-05-14T00:00:00+00:00</published><updated>2024-05-14T00:00:00+00:00</updated><id>https://edfun317.github.io/blog/2024/cap-theorem-basics</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/cap-theorem-basics/"><![CDATA[<h2 id="understanding-cap-theorem">Understanding CAP Theorem</h2> <p>CAP theorem (也稱為布魯爾定理 Brewer’s theorem) 指出在分散式系統中，以下三個特性最多只能同時滿足其中兩個：</p> <h3 id="consistency-一致性">Consistency (一致性)</h3> <ul> <li>所有節點在同一時間看到相同的數據</li> <li>當數據更新後，所有客戶端讀取到的數據都是最新的</li> <li>範例：當你更新銀行帳戶餘額，不論連到哪個節點查詢都應該看到更新後的金額</li> </ul> <h3 id="availability-可用性">Availability (可用性)</h3> <ul> <li>每個對非故障節點的請求都必須得到回應</li> <li>系統持續運作並回應請求</li> <li>範例：即使某些節點故障，系統仍然可以處理用戶請求</li> </ul> <h3 id="partition-tolerance-分區容錯性">Partition Tolerance (分區容錯性)</h3> <ul> <li>系統在網路分區(節點之間無法通訊)的情況下仍能繼續運作</li> <li>即使節點之間的網路出現問題，系統仍可維持運作</li> <li>範例：當兩個數據中心之間的網路連接中斷時，系統仍可繼續提供服務</li> </ul> <h2 id="cap-的取捨">CAP 的取捨</h2> <p>在實際的分散式系統中，網路分區(P)是不可避免的，所以實際上我們只能在 CP 和 AP 之間做選擇：</p> <h3 id="cp-consistency--partition-tolerance">CP (Consistency + Partition Tolerance)</h3> <ul> <li>犧牲可用性 (A)</li> <li>當發生網路分區時，系統會停止服務以確保一致性</li> <li>適用場景： <ul> <li>銀行交易系統</li> <li>庫存管理系統</li> <li>訂單處理系統</li> </ul> </li> </ul> <h3 id="ap-availability--partition-tolerance">AP (Availability + Partition Tolerance)</h3> <ul> <li>犧牲一致性 (C)</li> <li>系統會繼續提供服務，但可能返回舊數據</li> <li>適用場景： <ul> <li>社交媒體貼文</li> <li>新聞推薦系統</li> <li>商品評論系統</li> </ul> </li> </ul> <h2 id="實際應用案例">實際應用案例</h2> <h3 id="銀行系統-cp">銀行系統 (CP)</h3> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>場景：銀行轉帳
+選擇：CP（一致性 + 分區容錯性）
+理由：
+- 不能容忍帳戶餘額不一致
+- 寧可暫時無法服務也不能出現錯誤數據
+- 必須確保交易的 ACID 特性
+</code></pre></div></div> <h3 id="社交媒體-ap">社交媒體 (AP)</h3> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>場景：Instagram 貼文
+選擇：AP（可用性 + 分區容錯性）
+理由：
+- 用戶暫時看不到最新貼文是可以接受的
+- 系統持續可用比數據即時一致更重要
+- 可以使用最終一致性解決方案
+</code></pre></div></div> <h2 id="cap-理論的限制">CAP 理論的限制</h2> <p>需要注意的是，CAP 理論有其限制：</p> <ol> <li><strong>非二元選擇</strong> <ul> <li>一致性和可用性並非非黑即白</li> <li>可以在不同層級實現不同程度的一致性或可用性</li> </ul> </li> <li><strong>特定場景</strong> <ul> <li>CAP 主要適用於分散式數據存儲系統</li> <li>不是所有分散式系統設計決策的唯一依據</li> </ul> </li> <li><strong>技術演進</strong> <ul> <li>現代資料庫系統提供了更多細緻的選項</li> <li>可以在不同操作上做出不同的 CAP 選擇</li> </ul> </li> </ol> <h2 id="結論">結論</h2> <p>CAP 理論幫助我們理解分散式系統的基本限制和取捨。選擇 CP 還是 AP 取決於業務需求：</p> <ul> <li>需要強一致性的場景（如金融系統）選擇 CP</li> <li>需要高可用性的場景（如社交媒體）選擇 AP</li> </ul> <p>理解這些概念有助於做出更好的系統設計決策。而且要注意，這不是一個非黑即白的選擇，現代系統往往需要在不同場景中找到適當的平衡點。</p>]]></content><author><name></name></author><category term="distributed-systems"/><category term="system-design"/><category term="distributed-systems"/><category term="cap-theorem"/><summary type="html"><![CDATA[A clear explanation of CAP theorem fundamentals and its implications in distributed systems design]]></summary></entry><entry><title type="html">Understanding CAP Theorem and High Availability in Distributed Systems</title><link href="https://edfun317.github.io/blog/2024/cap-theorem-high-availability/" rel="alternate" type="text/html" title="Understanding CAP Theorem and High Availability in Distributed Systems"/><published>2024-05-14T00:00:00+00:00</published><updated>2024-05-14T00:00:00+00:00</updated><id>https://edfun317.github.io/blog/2024/cap-theorem-high-availability</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/cap-theorem-high-availability/"><![CDATA[<h2 id="understanding-cap-theorem">Understanding CAP Theorem</h2> <p>The CAP theorem, also known as Brewer’s theorem, states that a distributed system can only provide two out of three guarantees simultaneously:</p> <h3 id="consistency-c">Consistency (C)</h3> <ul> <li>All nodes see the same data at the same time</li> <li>After an update, all clients see the same data regardless of which node they connect to</li> <li>Example: When you update your profile picture on social media, all users should see the new picture immediately</li> </ul> <h3 id="availability-a">Availability (A)</h3> <ul> <li>Every request to a non-failing node must receive a response</li> <li>The system remains operational and responds to requests</li> <li>Example: An e-commerce website must continue to process orders even if some servers are down</li> </ul> <h3 id="partition-tolerance-p">Partition Tolerance (P)</h3> <ul> <li>The system continues to operate despite network failures between nodes</li> <li>System works even when network communication between parts of the system fails</li> <li>Example: A distributed database continues to function even when network issues occur between data centers</li> </ul> <h2 id="trade-offs-in-cap-theorem">Trade-offs in CAP Theorem</h2> <p>In reality, because network partitions are inevitable in distributed systems, you must choose between:</p> <ol> <li><strong>CP (Consistency + Partition Tolerance)</strong> <ul> <li>Sacrifices availability</li> <li>Example: Traditional banking systems prioritize consistency over availability</li> <li>Use case: Financial transactions where accuracy is critical</li> </ul> </li> <li><strong>AP (Availability + Partition Tolerance)</strong> <ul> <li>Sacrifices consistency</li> <li>Example: Social media news feeds can be eventually consistent</li> <li>Use case: Content delivery networks where temporary inconsistency is acceptable</li> </ul> </li> </ol> <h2 id="high-availability-ha">High Availability (HA)</h2> <p>High Availability refers to systems designed to be operational for long periods by having:</p> <h3 id="key-components-of-ha">Key Components of HA</h3> <ol> <li><strong>Redundancy</strong> <ul> <li>Multiple identical resources</li> <li>No single point of failure</li> <li>Example: Multiple application servers behind a load balancer</li> </ul> </li> <li><strong>Failover</strong> <ul> <li>Automatic switching to redundant systems</li> <li>Minimal or no downtime</li> <li>Example: Primary-secondary database setup</li> </ul> </li> <li><strong>Monitoring and Recovery</strong> <ul> <li>Continuous health checks</li> <li>Automated recovery procedures</li> <li>Example: Auto-scaling based on system metrics</li> </ul> </li> </ol> <h3 id="measuring-high-availability">Measuring High Availability</h3> <p>Availability is often measured in “nines”:</p> <ul> <li>99.9% (three nines) = 8.76 hours downtime/year</li> <li>99.99% (four nines) = 52.56 minutes downtime/year</li> <li>99.999% (five nines) = 5.26 minutes downtime/year</li> </ul> <h2 id="real-world-examples">Real-World Examples</h2> <h3 id="e-commerce-platform">E-commerce Platform</h3> <ul> <li><strong>CAP Choice</strong>: AP (Availability + Partition Tolerance)</li> <li><strong>Reasoning</strong>: Better to serve slightly stale product data than show error pages</li> <li><strong>HA Implementation</strong>: Multiple data centers with replication</li> </ul> <h3 id="banking-system">Banking System</h3> <ul> <li><strong>CAP Choice</strong>: CP (Consistency + Partition Tolerance)</li> <li><strong>Reasoning</strong>: Cannot risk inconsistent account balances</li> <li><strong>HA Implementation</strong>: Active-passive failover with synchronous replication</li> </ul> <h2 id="best-practices-for-system-design">Best Practices for System Design</h2> <ol> <li><strong>Choose Based on Business Requirements</strong> <ul> <li>Financial systems → prioritize consistency</li> <li>Content delivery → prioritize availability</li> </ul> </li> <li><strong>Design for Failure</strong> <ul> <li>Assume components will fail</li> <li>Plan redundancy at every layer</li> <li>Implement graceful degradation</li> </ul> </li> <li><strong>Implement Monitoring</strong> <ul> <li>Real-time system health tracking</li> <li>Automated alerting systems</li> <li>Performance metrics collection</li> </ul> </li> </ol> <h2 id="conclusion">Conclusion</h2> <p>Understanding CAP theorem and High Availability principles is crucial for designing robust distributed systems. While CAP theorem presents fundamental trade-offs, High Availability practices help maximize system uptime and reliability. The key is choosing the right balance based on your specific use case and business requirements.</p>]]></content><author><name></name></author><category term="distributed-systems"/><category term="system-design"/><category term="distributed-systems"/><category term="cap-theorem"/><category term="high-availability"/><summary type="html"><![CDATA[A comprehensive guide to understanding CAP theorem and High Availability principles in distributed systems]]></summary></entry><entry><title type="html">High Availability and Clustering in System Design</title><link href="https://edfun317.github.io/blog/2024/high-availability-clustering/" rel="alternate" type="text/html" title="High Availability and Clustering in System Design"/><published>2024-05-14T00:00:00+00:00</published><updated>2024-05-14T00:00:00+00:00</updated><id>https://edfun317.github.io/blog/2024/high-availability-clustering</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/high-availability-clustering/"><![CDATA[<h2 id="什麼是高可用性-high-availability">什麼是高可用性 (High Availability)？</h2> <p>高可用性是指系統能夠長期穩定運行，最小化停機時間的能力。在企業級應用中，這通常通過多種系統層面的機制來實現，其中最重要的就是叢集（Cluster）。</p> <h3 id="可用性衡量標準">可用性衡量標準</h3> <p>系統可用性通常用”幾個九”來衡量：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>99.9%   (三個九) = 每年停機時間約 8.76 小時
+99.99%  (四個九) = 每年停機時間約 52.56 分鐘
+99.999% (五個九) = 每年停機時間約 5.26 分鐘
+</code></pre></div></div> <h2 id="實現高可用性的關鍵機制">實現高可用性的關鍵機制</h2> <h3 id="1-叢集架構-clustering">1. 叢集架構 (Clustering)</h3> <p>叢集是實現高可用性最常用的技術手段之一：</p> <h4 id="主從式叢集-master-slave">主從式叢集 (Master-Slave)</h4> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>特點：
+- 一個主節點處理寫操作
+- 多個從節點處理讀操作
+- 主節點同步數據到從節點
+
+應用：
+- Redis Sentinel
+- MySQL 主從複製
+</code></pre></div></div> <h4 id="對等式叢集-multi-master">對等式叢集 (Multi-Master)</h4> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>特點：
+- 所有節點都可以處理讀寫操作
+- 需要解決數據同步和衝突
+- 較高的系統複雜度
+
+應用：
+- Redis Cluster
+- MySQL Group Replication
+</code></pre></div></div> <h3 id="2-負載均衡-load-balancing">2. 負載均衡 (Load Balancing)</h3> <p>負載均衡是叢集系統中的關鍵組件：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>功能：
+- 請求分發
+- 健康檢查
+- 故障轉移
+- 會話保持
+
+實現方式：
+- 硬體：F5、A10
+- 軟體：Nginx、HAProxy
+</code></pre></div></div> <h3 id="3-故障轉移-failover">3. 故障轉移 (Failover)</h3> <p>自動故障轉移機制確保系統的持續可用：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>步驟：
+1. 監控節點健康狀態
+2. 偵測到故障時自動切換
+3. 重新分配工作負載
+4. 啟動備用節點
+
+常見方案：
+- 主備切換
+- 選舉機制
+- 仲裁系統
+</code></pre></div></div> <h2 id="高可用性的層次">高可用性的層次</h2> <p>系統高可用性需要在多個層面實現：</p> <h3 id="1-應用層">1. 應用層</h3> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>- 多實例部署
+- 無狀態設計
+- 會話共享
+- 優雅降級
+</code></pre></div></div> <h3 id="2-數據層">2. 數據層</h3> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>- 數據複製
+- 分片策略
+- 備份恢復
+- 數據一致性
+</code></pre></div></div> <h3 id="3-基礎設施層">3. 基礎設施層</h3> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>- 多機房部署
+- 網路冗餘
+- 硬體備份
+- 容災設計
+</code></pre></div></div> <h2 id="實現高可用的最佳實踐">實現高可用的最佳實踐</h2> <ol> <li><strong>冗餘設計</strong> <ul> <li>避免單點故障</li> <li>關鍵組件需要備份</li> <li>資源適度冗餘</li> </ul> </li> <li><strong>監控告警</strong> <ul> <li>全面的監控覆蓋</li> <li>及時的告警機制</li> <li>自動化運維工具</li> </ul> </li> <li><strong>容錯設計</strong> <ul> <li>熔斷機制</li> <li>限流策略</li> <li>降級方案</li> </ul> </li> </ol> <h2 id="高可用性-vs-cap-理論">高可用性 vs CAP 理論</h2> <p>高可用性（HA）和 CAP 理論是兩個相關但不同的概念：</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>高可用性 (HA)：
+- 關注系統的可用時間
+- 通過冗餘和故障轉移實現
+- 屬於系統架構層面
+
+CAP 理論：
+- 關注分散式系統的特性
+- 描述系統設計的理論限制
+- 屬於理論基礎層面
+</code></pre></div></div> <h2 id="結論">結論</h2> <p>實現高可用性是一個系統性工程，需要在應用架構、運維體系、監控告警等多個維度共同發力。叢集技術是實現高可用的重要手段，但並非唯一方案。成功的高可用架構需要結合業務特點，選擇適當的技術方案，並在實踐中不斷優化和改進。</p>]]></content><author><name></name></author><category term="distributed-systems"/><category term="system-design"/><category term="distributed-systems"/><category term="high-availability"/><category term="clustering"/><summary type="html"><![CDATA[Understanding High Availability implementation through clustering and other system-level mechanisms]]></summary></entry><entry><title type="html">Redis Failover and High Availability - Part 4</title><link href="https://edfun317.github.io/blog/2024/redis-failover-ha/" rel="alternate" type="text/html" title="Redis Failover and High Availability - Part 4"/><published>2024-05-12T09:15:00+00:00</published><updated>2024-05-12T09:15:00+00:00</updated><id>https://edfun317.github.io/blog/2024/redis-failover-ha</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/redis-failover-ha/"><![CDATA[<h1 id="redis-failover-and-high-availability">Redis Failover and High Availability</h1> <p>High availability in Redis is achieved through a combination of replication, automatic failover, and monitoring. This post explores these mechanisms in detail.</p> <h2 id="redis-sentinel">Redis Sentinel</h2> <h3 id="architecture">Architecture</h3> <pre><code class="language-mermaid">graph TB
     subgraph Sentinel Cluster
     S1[Sentinel 1]
     S2[Sentinel 2]
@@ -1010,211 +1081,657 @@ fmt.Printf("Node status: %s\n", status) } ```
     <span class="n">client</span> <span class="o">:=</span> <span class="n">cc</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">Result</span><span class="p">()</span>
 <span class="p">}</span>
-</code></pre></div></div> <h3 id="consistent-hashing">Consistent Hashing</h3> <p>Alternative approach used by some proxy solutions:</p> <ul> <li>Minimizes remapping when adding/removing nodes</li> <li>Based on a hash ring</li> <li>Better distribution with virtual nodes</li> </ul> <h2 id="performance-considerations">Performance Considerations</h2> <ol> <li>Network Overhead <ul> <li>Additional latency in distributed setups</li> <li>Need for proper monitoring</li> <li>Network bandwidth becomes crucial</li> </ul> </li> <li>Data Locality <ul> <li>Related data should be on same node</li> <li>Use hash tags {user123}.profile</li> <li>Reduces multi-node operations</li> </ul> </li> <li>Memory Usage <ul> <li>Even distribution prevents hot spots</li> <li>Monitor memory usage across nodes</li> <li>Plan for growth and scaling</li> </ul> </li> </ol> <h2 id="next-steps">Next Steps</h2> <p>In the next post, we’ll dive deep into Redis Cluster mode, exploring:</p> <ul> <li>Cluster topology</li> <li>Node communication</li> <li>Failover mechanisms</li> <li>Configuration best practices</li> </ul> <h2 id="references">References</h2> <ol> <li>Redis Cluster Specification</li> <li>Redis Documentation on Partitioning</li> <li>Redis Cluster Tutorial</li> </ol>]]></content><author><name></name></author><category term="database"/><category term="redis"/><category term="sharding"/><category term="cluster"/><category term="distributed-systems"/><summary type="html"><![CDATA[Deep dive into Redis architecture and data distribution mechanisms]]></summary></entry><entry><title type="html">Golang Mutex 深入理解：原理、使用與陷阱</title><link href="https://edfun317.github.io/blog/2024/golang-mutex-basic/" rel="alternate" type="text/html" title="Golang Mutex 深入理解：原理、使用與陷阱"/><published>2024-05-12T04:31:00+00:00</published><updated>2024-05-12T04:31:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-mutex-basic</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-mutex-basic/"><![CDATA[<h2 id="mutex-的本質">Mutex 的本質</h2> <p>Golang 中的 <code class="language-plaintext highlighter-rouge">sync.Mutex</code> 是一個互斥鎖，用於保護共享資源不被多個 goroutine 同時訪問。本文將深入探討其實現原理和使用方式。</p> <h2 id="底層實現原理">底層實現原理</h2> <h3 id="1-數據結構">1. 數據結構</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Mutex</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">state</span> <span class="kt">int32</span>
-    <span class="n">sema</span>  <span class="kt">uint32</span>
-<span class="p">}</span>
-</code></pre></div></div> <p>Mutex 的內部實現主要包含兩個字段：</p> <ul> <li><code class="language-plaintext highlighter-rouge">state</code>: 表示鎖的狀態</li> <li><code class="language-plaintext highlighter-rouge">sema</code>: 用於控制 goroutine 阻塞喚醒的信號量</li> </ul> <h3 id="2-鎖狀態位">2. 鎖狀態位</h3> <p>state 字段的位元含義：</p> <ul> <li>位元 0: 表示鎖是否被持有（1=locked, 0=unlocked）</li> <li>位元 1: 表示是否有喚醒的 goroutine（1=wakered, 0=not wakered）</li> <li>位元 2: 表示是否處於餓死模式（1=starving, 0=normal）</li> <li>位元 3-31: 等待隊列中的 goroutine 數量</li> </ul> <h2 id="加鎖過程分析">加鎖過程分析</h2> <h3 id="1-快速路徑">1. 快速路徑</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">Mutex</span><span class="p">)</span> <span class="n">Lock</span><span class="p">()</span> <span class="p">{</span>
-    <span class="c">// 快速路徑：嘗試直接獲取鎖</span>
-    <span class="k">if</span> <span class="n">atomic</span><span class="o">.</span><span class="n">CompareAndSwapInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">m</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">mutexLocked</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span>
-    <span class="p">}</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">lockSlow</span><span class="p">()</span>
-<span class="p">}</span>
-</code></pre></div></div> <h3 id="2-慢速路徑">2. 慢速路徑</h3> <p>當快速路徑失敗時，進入慢速路徑：</p> <ol> <li>自旋等待</li> <li>進入等待隊列</li> <li>餓死模式處理</li> </ol> <h2 id="性能特性">性能特性</h2> <h3 id="1-自旋等待">1. 自旋等待</h3> <ul> <li>在多核系統上，如果鎖競爭不激烈，會先嘗試自旋</li> <li>自旋條件： <ul> <li>當前機器是多核</li> <li>GOMAXPROCS &gt; 1</li> <li>至少有一個其他的正在運行的 P</li> <li>當前 goroutine 的 P 未被禁用</li> </ul> </li> </ul> <h3 id="2-公平性">2. 公平性</h3> <ul> <li>正常模式：新來的 goroutine 和等待的 goroutine 公平競爭</li> <li>餓死模式：優先讓等待時間最長的 goroutine 獲得鎖</li> </ul> <h2 id="使用示例">使用示例</h2> <h3 id="1-基本使用">1. 基本使用</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">var</span> <span class="n">mu</span> <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
-<span class="k">var</span> <span class="n">count</span> <span class="kt">int</span>
-
-<span class="k">func</span> <span class="n">increment</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-    <span class="k">defer</span> <span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
-    <span class="n">count</span><span class="o">++</span>
-<span class="p">}</span>
-</code></pre></div></div> <h3 id="2-結構體內嵌">2. 結構體內嵌</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Counter</span> <span class="k">struct</span> <span class="p">{</span>
+</code></pre></div></div> <h3 id="consistent-hashing">Consistent Hashing</h3> <p>Alternative approach used by some proxy solutions:</p> <ul> <li>Minimizes remapping when adding/removing nodes</li> <li>Based on a hash ring</li> <li>Better distribution with virtual nodes</li> </ul> <h2 id="performance-considerations">Performance Considerations</h2> <ol> <li>Network Overhead <ul> <li>Additional latency in distributed setups</li> <li>Need for proper monitoring</li> <li>Network bandwidth becomes crucial</li> </ul> </li> <li>Data Locality <ul> <li>Related data should be on same node</li> <li>Use hash tags {user123}.profile</li> <li>Reduces multi-node operations</li> </ul> </li> <li>Memory Usage <ul> <li>Even distribution prevents hot spots</li> <li>Monitor memory usage across nodes</li> <li>Plan for growth and scaling</li> </ul> </li> </ol> <h2 id="next-steps">Next Steps</h2> <p>In the next post, we’ll dive deep into Redis Cluster mode, exploring:</p> <ul> <li>Cluster topology</li> <li>Node communication</li> <li>Failover mechanisms</li> <li>Configuration best practices</li> </ul> <h2 id="references">References</h2> <ol> <li>Redis Cluster Specification</li> <li>Redis Documentation on Partitioning</li> <li>Redis Cluster Tutorial</li> </ol>]]></content><author><name></name></author><category term="database"/><category term="redis"/><category term="sharding"/><category term="cluster"/><category term="distributed-systems"/><summary type="html"><![CDATA[Deep dive into Redis architecture and data distribution mechanisms]]></summary></entry><entry><title type="html">Golang 併發控制技術選擇指南</title><link href="https://edfun317.github.io/blog/2024/golang-concurrency-summary/" rel="alternate" type="text/html" title="Golang 併發控制技術選擇指南"/><published>2024-05-12T06:58:00+00:00</published><updated>2024-05-12T06:58:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-concurrency-summary</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-concurrency-summary/"><![CDATA[<h2 id="併發控制技術概覽">併發控制技術概覽</h2> <p>在探討了各種 Golang 併發控制技術後，本文將對這些技術進行綜合比較，並提供實際應用場景的選擇指南。我們將從性能、複雜度、適用場景等多個維度進行分析。</p> <h2 id="技術特點比較">技術特點比較</h2> <h3 id="1-mutex互斥鎖">1. Mutex（互斥鎖）</h3> <ul> <li><strong>優點</strong> <ul> <li>使用簡單直接</li> <li>適合簡單的互斥需求</li> <li>內存佔用小</li> </ul> </li> <li><strong>缺點</strong> <ul> <li>高併發下可能性能bottleneck</li> <li>容易導致死鎖</li> <li>不適合複雜的併發場景</li> </ul> </li> <li><strong>適用場景</strong> <ul> <li>單一資源的互斥訪問</li> <li>短期持有的鎖</li> <li>低併發場景</li> </ul> </li> </ul> <h3 id="2-rwmutex讀寫鎖">2. RWMutex（讀寫鎖）</h3> <ul> <li><strong>優點</strong> <ul> <li>支持並發讀操作</li> <li>適合讀多寫少場景</li> <li>實現相對簡單</li> </ul> </li> <li><strong>缺點</strong> <ul> <li>寫操作可能產生飢餓</li> <li>讀寫比例失衡時性能下降</li> <li>額外的內存開銷</li> </ul> </li> <li><strong>適用場景</strong> <ul> <li>讀多寫少的數據結構</li> <li>配置信息的訪問</li> <li>緩存數據的讀取</li> </ul> </li> </ul> <h3 id="3-lock-striping分段鎖">3. Lock Striping（分段鎖）</h3> <ul> <li><strong>優點</strong> <ul> <li>顯著減少鎖競爭</li> <li>支持並行訪問不同段</li> <li>可以動態調整段數</li> </ul> </li> <li><strong>缺點</strong> <ul> <li>實現複雜度高</li> <li>內存開銷較大</li> <li>可能產生數據分佈不均</li> </ul> </li> <li><strong>適用場景</strong> <ul> <li>大規模併發訪問</li> <li>數據自然分段的場景</li> <li>高性能緩存系統</li> </ul> </li> </ul> <h3 id="4-lock-free無鎖">4. Lock-Free（無鎖）</h3> <ul> <li><strong>優點</strong> <ul> <li>極高的併發性能</li> <li>無死鎖風險</li> <li>適合短期操作</li> </ul> </li> <li><strong>缺點</strong> <ul> <li>實現極其複雜</li> <li>正確性難以保證</li> <li>可能出現 ABA 問題</li> </ul> </li> <li><strong>適用場景</strong> <ul> <li>極限性能要求</li> <li>原子計數器</li> <li>隊列操作</li> </ul> </li> </ul> <h3 id="5-channel">5. Channel</h3> <ul> <li><strong>優點</strong> <ul> <li>符合 Go 設計哲學</li> <li>較低的死鎖風險</li> <li>易於理解和維護</li> </ul> </li> <li><strong>缺點</strong> <ul> <li>可能有額外的調度開銷</li> <li>不適合細粒度的訪問控制</li> <li>內存佔用較大</li> </ul> </li> <li><strong>適用場景</strong> <ul> <li>消息傳遞</li> <li>任務編排</li> <li>事件驅動系統</li> </ul> </li> </ul> <h2 id="選擇指南">選擇指南</h2> <h3 id="1-基於場景特點選擇">1. 基於場景特點選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 簡單互斥場景</span>
+<span class="k">type</span> <span class="n">SimpleCounter</span> <span class="k">struct</span> <span class="p">{</span>
     <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
     <span class="n">count</span> <span class="kt">int</span>
 <span class="p">}</span>
 
+<span class="c">// 讀多寫少場景</span>
+<span class="k">type</span> <span class="n">Configuration</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">settings</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 高併發散列表</span>
+<span class="k">type</span> <span class="n">ConcurrentMap</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">shards</span>    <span class="p">[]</span><span class="o">*</span><span class="n">mapShard</span>
+    <span class="n">shardMask</span> <span class="kt">uint32</span>
+<span class="p">}</span>
+
+<span class="c">// 無鎖計數器</span>
+<span class="k">type</span> <span class="n">AtomicCounter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">value</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+
+<span class="c">// 工作池模式</span>
+<span class="k">type</span> <span class="n">WorkPool</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">tasks</span>   <span class="k">chan</span> <span class="n">Task</span>
+    <span class="n">results</span> <span class="k">chan</span> <span class="n">Result</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-基於性能需求選擇">2. 基於性能需求選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 低併發場景：使用簡單互斥鎖</span>
+<span class="k">func</span> <span class="n">LowConcurrency</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">mu</span> <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="c">// 操作共享資源</span>
+<span class="p">}</span>
+
+<span class="c">// 中等併發場景：使用讀寫鎖</span>
+<span class="k">func</span> <span class="n">MediumConcurrency</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">rwmu</span> <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">rwmu</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">rwmu</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="c">// 讀取操作</span>
+<span class="p">}</span>
+
+<span class="c">// 高併發場景：使用分段鎖</span>
+<span class="k">type</span> <span class="n">HighConcurrency</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">segment</span>
+    <span class="n">mask</span>     <span class="kt">uint32</span>
+<span class="p">}</span>
+
+<span class="c">// 極限性能場景：使用無鎖設計</span>
+<span class="k">type</span> <span class="n">UltraPerformance</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">value</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Value</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-基於複雜度選擇">3. 基於複雜度選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 簡單業務邏輯：互斥鎖</span>
+<span class="k">type</span> <span class="n">SimpleService</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 中等複雜度：Channel</span>
+<span class="k">type</span> <span class="n">MessageBroker</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="k">chan</span> <span class="n">Message</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="n">Result</span>
+<span class="p">}</span>
+
+<span class="c">// 複雜業務邏輯：混合方案</span>
+<span class="k">type</span> <span class="n">ComplexService</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">data</span>    <span class="o">*</span><span class="n">ConcurrentMap</span>    <span class="c">// 分段鎖</span>
+    <span class="n">cache</span>   <span class="o">*</span><span class="n">LockFreeCache</span>    <span class="c">// 無鎖緩存</span>
+    <span class="n">tasks</span>   <span class="k">chan</span> <span class="n">Task</span>         <span class="c">// 任務通道</span>
+    <span class="n">config</span>  <span class="o">*</span><span class="n">Configuration</span>    <span class="c">// 讀寫鎖</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="最佳實踐建議">最佳實踐建議</h2> <h3 id="1-循序漸進">1. 循序漸進</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 第一步：使用簡單的互斥鎖</span>
+<span class="k">type</span> <span class="n">Initial</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 第二步：升級到讀寫鎖</span>
+<span class="k">type</span> <span class="n">Improved</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 第三步：引入分段設計</span>
+<span class="k">type</span> <span class="n">Advanced</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">Segment</span>
+<span class="p">}</span>
+
+<span class="c">// 最後：根據需要使用無鎖操作</span>
+<span class="k">type</span> <span class="n">Optimized</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">Segment</span>
+    <span class="n">counter</span>  <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-混合使用">2. 混合使用</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">HybridSystem</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="c">// 配置信息：讀寫鎖</span>
+    <span class="n">config</span> <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">settings</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+    
+    <span class="c">// 高頻計數：原子操作</span>
+    <span class="n">counter</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    
+    <span class="c">// 數據存儲：分段鎖</span>
+    <span class="n">store</span> <span class="o">*</span><span class="n">ShardedMap</span>
+    
+    <span class="c">// 任務處理：Channel</span>
+    <span class="n">tasks</span> <span class="k">chan</span> <span class="n">Task</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-監控與調優">3. 監控與調優</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">PerformanceMetrics</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">lockContentions</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    <span class="n">lockWaitTime</span>    <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    <span class="n">operations</span>      <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">PerformanceMetrics</span><span class="p">)</span> <span class="n">Record</span><span class="p">(</span><span class="n">duration</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">operations</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="o">&gt;</span> <span class="n">threshold</span> <span class="p">{</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">lockContentions</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">lockWaitTime</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="kt">int64</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="決策流程">決策流程</h2> <ol> <li><strong>評估場景需求</strong> <ul> <li>併發度</li> <li>讀寫比例</li> <li>性能要求</li> <li>複雜度接受度</li> </ul> </li> <li><strong>選擇基礎方案</strong> <ul> <li>簡單場景 → Mutex</li> <li>讀多寫少 → RWMutex</li> <li>高併發 → Lock Striping</li> <li>極限性能 → Lock-Free</li> <li>任務協調 → Channel</li> </ul> </li> <li><strong>優化與調整</strong> <ul> <li>監控性能指標</li> <li>識別瓶頸</li> <li>逐步改進</li> <li>混合使用不同技術</li> </ul> </li> </ol> <h2 id="總結">總結</h2> <p>選擇合適的併發控制技術需要綜合考慮：</p> <ol> <li><strong>場景特點</strong> <ul> <li>併發度</li> <li>訪問模式</li> <li>數據特性</li> </ul> </li> <li><strong>技術特點</strong> <ul> <li>實現複雜度</li> <li>維護成本</li> <li>性能特性</li> </ul> </li> <li><strong>團隊因素</strong> <ul> <li>技術儲備</li> <li>維護能力</li> <li>開發週期</li> </ul> </li> </ol> <p>最終建議：</p> <ol> <li>從簡單方案開始</li> <li>基於數據優化</li> <li>持續監控調優</li> <li>適度超前設計</li> </ol> <h2 id="參考資料">參考資料</h2> <ol> <li><a href="https://golang.org/doc/">Golang 官方文檔</a></li> <li><a href="https://talks.golang.org/2012/concurrency.slide">Go Concurrency Patterns</a></li> <li><a href="https://golang.org/ref/mem">The Go Memory Model</a></li> <li><a href="https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html">High Performance Go Workshop</a></li> </ol>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="performance"/><category term="optimization"/><summary type="html"><![CDATA[總結各種 Golang 併發控制技術的特點，並提供實際應用場景的選擇建議]]></summary></entry><entry><title type="html">Golang Channel：CSP 模型下的併發控制</title><link href="https://edfun317.github.io/blog/2024/golang-channel-sync/" rel="alternate" type="text/html" title="Golang Channel：CSP 模型下的併發控制"/><published>2024-05-12T06:29:00+00:00</published><updated>2024-05-12T06:29:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-channel-sync</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-channel-sync/"><![CDATA[<h2 id="channel-概述">Channel 概述</h2> <p>Channel 是 Go 語言中的一個核心特性，它實現了 CSP（Communicating Sequential Processes）模型，提供了一種優雅的 goroutine 間通信方式。相比傳統的鎖機制，Channel 更符合 Go 的設計哲學：”不要通過共享內存來通信，而是通過通信來共享內存”。</p> <h2 id="基本概念">基本概念</h2> <h3 id="1-channel-類型">1. Channel 類型</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 無緩衝 channel</span>
+<span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+
+<span class="c">// 有緩衝 channel</span>
+<span class="n">bufCh</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">10</span><span class="p">)</span>
+
+<span class="c">// 單向 channel</span>
+<span class="k">var</span> <span class="n">sendCh</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">int</span> <span class="c">// 只能發送</span>
+<span class="k">var</span> <span class="n">recvCh</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span> <span class="c">// 只能接收</span>
+</code></pre></div></div> <h3 id="2-基本操作">2. 基本操作</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 發送</span>
+<span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">value</span>
+
+<span class="c">// 接收</span>
+<span class="n">value</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+
+<span class="c">// 關閉</span>
+<span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+<span class="c">// 檢查是否關閉</span>
+<span class="n">value</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+</code></pre></div></div> <h2 id="併發控制模式">併發控制模式</h2> <h3 id="1-互斥鎖替代">1. 互斥鎖替代</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Counter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="k">chan</span> <span class="kt">int</span>
+    <span class="n">value</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewCounter</span><span class="p">()</span> <span class="o">*</span><span class="n">Counter</span> <span class="p">{</span>
+    <span class="n">c</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">Counter</span><span class="p">{</span>
+        <span class="n">ch</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="n">delta</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="p">{</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="c">// 可以在這裡添加其他需要同步的操作</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="n">c</span>
+<span class="p">}</span>
+
 <span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Increment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="o">&lt;-</span> <span class="m">1</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Decrement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="o">&lt;-</span> <span class="o">-</span><span class="m">1</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-工作池模式">2. 工作池模式</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">WorkPool</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">jobs</span>    <span class="k">chan</span> <span class="n">Job</span>
+    <span class="n">results</span> <span class="k">chan</span> <span class="n">Result</span>
+    <span class="n">workers</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewWorkPool</span><span class="p">(</span><span class="n">workers</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">WorkPool</span> <span class="p">{</span>
+    <span class="n">pool</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">WorkPool</span><span class="p">{</span>
+        <span class="n">jobs</span><span class="o">:</span>    <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="n">Job</span><span class="p">),</span>
+        <span class="n">results</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="n">Result</span><span class="p">),</span>
+        <span class="n">workers</span><span class="o">:</span> <span class="n">workers</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pool</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">p</span><span class="o">.</span><span class="n">workers</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">job</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">jobs</span> <span class="p">{</span>
+                <span class="n">result</span> <span class="o">:=</span> <span class="n">job</span><span class="o">.</span><span class="n">Execute</span><span class="p">()</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">results</span> <span class="o">&lt;-</span> <span class="n">result</span>
+            <span class="p">}</span>
+        <span class="p">}()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Submit</span><span class="p">(</span><span class="n">job</span> <span class="n">Job</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">jobs</span> <span class="o">&lt;-</span> <span class="n">job</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Results</span><span class="p">()</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="n">Result</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">results</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-任務編排">3. 任務編排</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Pipeline</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewPipeline</span><span class="p">(</span><span class="n">input</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span>
+        <span class="n">input</span><span class="o">:</span>  <span class="n">input</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">Pipeline</span><span class="p">)</span> <span class="n">Transform</span><span class="p">(</span><span class="n">fn</span> <span class="k">func</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="n">out</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+            <span class="n">out</span> <span class="o">&lt;-</span> <span class="n">fn</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span><span class="n">input</span><span class="o">:</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="o">:</span> <span class="n">out</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">Pipeline</span><span class="p">)</span> <span class="n">Filter</span><span class="p">(</span><span class="n">fn</span> <span class="k">func</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="kt">bool</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="n">out</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="n">fn</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">out</span> <span class="o">&lt;-</span> <span class="n">v</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span><span class="n">input</span><span class="o">:</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="o">:</span> <span class="n">out</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="高級模式">高級模式</h2> <h3 id="1-超時控制">1. 超時控制</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">WithTimeout</span><span class="p">(</span><span class="n">ch</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="n">timeout</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">result</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span><span class="o">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="no">nil</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="n">time</span><span class="o">.</span><span class="n">After</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="m">0</span><span class="p">,</span> <span class="n">errors</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="s">"operation timed out"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c">// 使用示例</span>
+<span class="k">func</span> <span class="n">ProcessWithTimeout</span><span class="p">(</span><span class="n">data</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="o">:=</span> <span class="n">heavyProcessing</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">result</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="n">WithTimeout</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="m">5</span><span class="o">*</span><span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-取消操作">2. 取消操作</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">CancellableOperation</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">done</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">op</span> <span class="o">*</span><span class="n">CancellableOperation</span><span class="p">)</span> <span class="n">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">{</span>
+            <span class="k">select</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">&lt;-</span><span class="n">op</span><span class="o">.</span><span class="n">done</span><span class="o">:</span>
+                <span class="k">return</span>
+            <span class="k">default</span><span class="o">:</span>
+                <span class="c">// 執行操作</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">100</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Millisecond</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">op</span> <span class="o">*</span><span class="n">CancellableOperation</span><span class="p">)</span> <span class="n">Cancel</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nb">close</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">done</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-廣播機制">3. 廣播機制</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Broadcaster</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">source</span>  <span class="o">&lt;-</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">output</span>  <span class="p">[]</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">done</span>    <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">Broadcaster</span><span class="p">)</span> <span class="n">Subscribe</span><span class="p">()</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{})</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="nb">append</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ch</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">Broadcaster</span><span class="p">)</span> <span class="n">Broadcast</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ch</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+                <span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}()</span>
+        
+        <span class="k">for</span> <span class="p">{</span>
+            <span class="k">select</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">&lt;-</span><span class="n">b</span><span class="o">.</span><span class="n">done</span><span class="o">:</span>
+                <span class="k">return</span>
+            <span class="k">case</span> <span class="n">msg</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">b</span><span class="o">.</span><span class="n">source</span><span class="o">:</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ch</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+                    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">msg</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="效能優化">效能優化</h2> <h3 id="1-緩衝區大小選擇">1. 緩衝區大小選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">OptimalBufferSize</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">GOMAXPROCS</span><span class="p">(</span><span class="m">0</span><span class="p">)</span> <span class="o">*</span> <span class="m">2</span>
+<span class="p">}</span>
+
+<span class="c">// 根據負載自動調整緩衝區</span>
+<span class="k">type</span> <span class="n">AdaptiveChannel</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">ch</span>        <span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">size</span>      <span class="kt">int</span>
+    <span class="n">threshold</span> <span class="kt">float64</span>
+    <span class="n">mu</span>        <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">ac</span> <span class="o">*</span><span class="n">AdaptiveChannel</span><span class="p">)</span> <span class="n">resize</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">ac</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    
+    <span class="n">newSize</span> <span class="o">:=</span> <span class="n">ac</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">ac</span><span class="o">.</span><span class="n">loadFactor</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">ac</span><span class="o">.</span><span class="n">threshold</span> <span class="p">{</span>
+        <span class="n">newSize</span> <span class="o">*=</span> <span class="m">2</span>
+    <span class="p">}</span>
+    
+    <span class="n">newCh</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{},</span> <span class="n">newSize</span><span class="p">)</span>
+    <span class="nb">close</span><span class="p">(</span><span class="n">ac</span><span class="o">.</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">ch</span> <span class="o">=</span> <span class="n">newCh</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">newSize</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-批處理模式">2. 批處理模式</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">BatchProcessor</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="p">[]</span><span class="k">interface</span><span class="p">{}</span>
+    <span class="n">size</span>   <span class="kt">int</span>
+    <span class="n">timer</span>  <span class="n">time</span><span class="o">.</span><span class="n">Duration</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">bp</span> <span class="o">*</span><span class="n">BatchProcessor</span><span class="p">)</span> <span class="n">Process</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">batch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">NewTimer</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="k">select</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">item</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">bp</span><span class="o">.</span><span class="n">input</span><span class="o">:</span>
+            <span class="n">batch</span> <span class="o">=</span> <span class="nb">append</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span> <span class="p">{</span>
+                <span class="n">bp</span><span class="o">.</span><span class="n">output</span> <span class="o">&lt;-</span> <span class="n">batch</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">Reset</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="k">case</span> <span class="o">&lt;-</span><span class="n">timer</span><span class="o">.</span><span class="n">C</span><span class="o">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="m">0</span> <span class="p">{</span>
+                <span class="n">bp</span><span class="o">.</span><span class="n">output</span> <span class="o">&lt;-</span> <span class="n">batch</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">Reset</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="實際應用">實際應用</h2> <h3 id="1-限流器">1. 限流器</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">RateLimiter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">tokens</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+    <span class="n">rate</span>   <span class="n">time</span><span class="o">.</span><span class="n">Duration</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewRateLimiter</span><span class="p">(</span><span class="n">rate</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">,</span> <span class="n">burst</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">RateLimiter</span> <span class="p">{</span>
+    <span class="n">rl</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">RateLimiter</span><span class="p">{</span>
+        <span class="n">tokens</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{},</span> <span class="n">burst</span><span class="p">),</span>
+        <span class="n">rate</span><span class="o">:</span>   <span class="n">rate</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">go</span> <span class="n">rl</span><span class="o">.</span><span class="n">fill</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">rl</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rl</span> <span class="o">*</span><span class="n">RateLimiter</span><span class="p">)</span> <span class="n">fill</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">ticker</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">NewTicker</span><span class="p">(</span><span class="n">rl</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span>
+    <span class="k">defer</span> <span class="n">ticker</span><span class="o">.</span><span class="n">Stop</span><span class="p">()</span>
+    
+    <span class="k">for</span> <span class="k">range</span> <span class="n">ticker</span><span class="o">.</span><span class="n">C</span> <span class="p">{</span>
+        <span class="k">select</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">rl</span><span class="o">.</span><span class="n">tokens</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span><span class="o">:</span>
+        <span class="k">default</span><span class="o">:</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rl</span> <span class="o">*</span><span class="n">RateLimiter</span><span class="p">)</span> <span class="n">Allow</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="n">rl</span><span class="o">.</span><span class="n">tokens</span><span class="o">:</span>
+        <span class="k">return</span> <span class="no">true</span>
+    <span class="k">default</span><span class="o">:</span>
+        <span class="k">return</span> <span class="no">false</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-並發控制器">2. 並發控制器</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">ConcurrencyController</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">semaphore</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewConcurrencyController</span><span class="p">(</span><span class="n">limit</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">ConcurrencyController</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">ConcurrencyController</span><span class="p">{</span>
+        <span class="n">semaphore</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{},</span> <span class="n">limit</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">cc</span> <span class="o">*</span><span class="n">ConcurrencyController</span><span class="p">)</span> <span class="n">Execute</span><span class="p">(</span><span class="n">task</span> <span class="k">func</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">cc</span><span class="o">.</span><span class="n">semaphore</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span> <span class="o">&lt;-</span><span class="n">cc</span><span class="o">.</span><span class="n">semaphore</span> <span class="p">}()</span>
+        <span class="n">task</span><span class="p">()</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="最佳實踐">最佳實踐</h2> <ol> <li><strong>選擇合適的 Channel 類型</strong> <ul> <li>無緩衝 channel 用於同步</li> <li>有緩衝 channel 用於異步</li> <li>根據場景選擇合適的緩衝大小</li> </ul> </li> <li><strong>錯誤處理</strong> <ul> <li>使用 select 處理超時</li> <li>正確處理 channel 關閉</li> <li>避免向已關閉的 channel 發送數據</li> </ul> </li> <li><strong>性能考慮</strong> <ul> <li>避免過多的 goroutine</li> <li>適當使用緩衝區</li> <li>考慮批處理優化</li> </ul> </li> </ol> <h2 id="結論">結論</h2> <p>Channel 是 Go 語言中一個強大的併發控制工具，它提供了：</p> <ol> <li>更清晰的併發模型</li> <li>更安全的數據共享方式</li> <li>更優雅的併發控制模式</li> </ol> <p>選擇 Channel 還是傳統鎖機制，需要根據具體場景：</p> <ol> <li>數據共享為主時，考慮鎖機制</li> <li>任務協調為主時，優先使用 Channel</li> <li>兩者結合使用時，注意避免死鎖</li> </ol> <p>在下一篇文章中，我們將探討如何在實際項目中結合多種併發控制技術。</p> <h2 id="參考資料">參考資料</h2> <ol> <li><a href="https://golang.org/doc/effective_go.html#channels">Effective Go</a></li> <li><a href="https://talks.golang.org/2012/concurrency.slide">Go Concurrency Patterns</a></li> <li><a href="https://talks.golang.org/2013/advconc.slide">Advanced Go Concurrency Patterns</a></li> </ol>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="channel"/><category term="csp"/><summary type="html"><![CDATA[探討如何使用 Golang Channel 實現優雅的併發控制，以及與傳統鎖機制的對比]]></summary></entry><entry><title type="html">Golang RWMutex：讀寫分離的併發控制</title><link href="https://edfun317.github.io/blog/2024/golang-rwmutex/" rel="alternate" type="text/html" title="Golang RWMutex：讀寫分離的併發控制"/><published>2024-05-12T06:02:00+00:00</published><updated>2024-05-12T06:02:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-rwmutex</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-rwmutex/"><![CDATA[<h2 id="rwmutex-概述">RWMutex 概述</h2> <p><code class="language-plaintext highlighter-rouge">sync.RWMutex</code> 是 Go 語言中的讀寫互斥鎖，它允許多個讀操作同時進行，但寫操作需要獨佔訪問。這種特性使其特別適合於讀多寫少的場景。</p> <h2 id="實現原理">實現原理</h2> <h3 id="1-數據結構">1. 數據結構</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">RWMutex</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">w</span>           <span class="n">Mutex</span>  <span class="c">// 用於寫鎖定</span>
+    <span class="n">writerSem</span>   <span class="kt">uint32</span> <span class="c">// 寫者等待信號量</span>
+    <span class="n">readerSem</span>   <span class="kt">uint32</span> <span class="c">// 讀者等待信號量</span>
+    <span class="n">readerCount</span> <span class="kt">int32</span>  <span class="c">// 讀者計數器</span>
+    <span class="n">readerWait</span>  <span class="kt">int32</span>  <span class="c">// 等待完成的讀者數量</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-讀鎖實現">2. 讀鎖實現</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">RWMutex</span><span class="p">)</span> <span class="n">RLock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c">// 快速路徑</span>
+    <span class="k">if</span> <span class="n">atomic</span><span class="o">.</span><span class="n">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerCount</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="m">0</span> <span class="p">{</span>
+        <span class="c">// 有寫者正在等待，需要排隊</span>
+        <span class="n">runtime_SemacquireMutex</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerSem</span><span class="p">,</span> <span class="no">false</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">RWMutex</span><span class="p">)</span> <span class="n">RUnlock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">:=</span> <span class="n">atomic</span><span class="o">.</span><span class="n">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerCount</span><span class="p">,</span> <span class="o">-</span><span class="m">1</span><span class="p">);</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="m">0</span> <span class="p">{</span>
+        <span class="c">// 有等待的寫者，需要喚醒</span>
+        <span class="k">if</span> <span class="n">atomic</span><span class="o">.</span><span class="n">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerWait</span><span class="p">,</span> <span class="o">-</span><span class="m">1</span><span class="p">)</span> <span class="o">==</span> <span class="m">0</span> <span class="p">{</span>
+            <span class="n">runtime_Semrelease</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">writerSem</span><span class="p">,</span> <span class="no">false</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-寫鎖實現">3. 寫鎖實現</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">RWMutex</span><span class="p">)</span> <span class="n">Lock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c">// 首先獲取互斥鎖</span>
+    <span class="n">rw</span><span class="o">.</span><span class="n">w</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="c">// 標記有寫者等待</span>
+    <span class="n">r</span> <span class="o">:=</span> <span class="n">atomic</span><span class="o">.</span><span class="n">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerCount</span><span class="p">,</span> <span class="o">-</span><span class="n">rwmutexMaxReaders</span><span class="p">)</span>
+    <span class="c">// 等待所有讀者完成</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">!=</span> <span class="o">-</span><span class="n">rwmutexMaxReaders</span> <span class="p">{</span>
+        <span class="n">runtime_SemacquireMutex</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">writerSem</span><span class="p">,</span> <span class="no">false</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">RWMutex</span><span class="p">)</span> <span class="n">Unlock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c">// 恢復讀者計數</span>
+    <span class="n">r</span> <span class="o">:=</span> <span class="n">atomic</span><span class="o">.</span><span class="n">AddInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerCount</span><span class="p">,</span> <span class="n">rwmutexMaxReaders</span><span class="p">)</span>
+    <span class="c">// 喚醒等待的讀者</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="kt">int</span><span class="p">(</span><span class="n">r</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="n">runtime_Semrelease</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rw</span><span class="o">.</span><span class="n">readerSem</span><span class="p">,</span> <span class="no">false</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="c">// 釋放互斥鎖</span>
+    <span class="n">rw</span><span class="o">.</span><span class="n">w</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="性能特性">性能特性</h2> <h3 id="1-讀優先特性">1. 讀優先特性</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">ReadPriorityCache</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">ReadPriorityCache</span><span class="p">)</span> <span class="n">Get</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="k">interface</span><span class="p">{},</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="n">val</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span><span class="p">,</span> <span class="n">ok</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">ReadPriorityCache</span><span class="p">)</span> <span class="n">Set</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">,</span> <span class="n">value</span> <span class="k">interface</span><span class="p">{})</span> <span class="p">{</span>
     <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
     <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">count</span><span class="o">++</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 <span class="p">}</span>
-</code></pre></div></div> <h2 id="常見陷阱">常見陷阱</h2> <h3 id="1-重入問題">1. 重入問題</h3> <p>Mutex 不支持重入，以下代碼會死鎖：</p> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">BadIncrement</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Increment</span><span class="p">()</span> <span class="c">// 死鎖！</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
-<span class="p">}</span>
-</code></pre></div></div> <h3 id="2-複製問題">2. 複製問題</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">BadCounter</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>  <span class="c">// 注意：Mutex 不應該被複製</span>
+</code></pre></div></div> <h3 id="2-寫飢餓問題">2. 寫飢餓問題</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 在高併發讀取的情況下，寫操作可能會被延遲</span>
+<span class="k">type</span> <span class="n">StarvationDemo</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
     <span class="n">count</span> <span class="kt">int</span>
 <span class="p">}</span>
 
-<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">c</span> <span class="o">:=</span> <span class="n">BadCounter</span><span class="p">{}</span>
-    <span class="n">c2</span> <span class="o">:=</span> <span class="n">c</span>     <span class="c">// 複製了 Mutex！</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>    <span class="c">// c 和 c2 的鎖現在是獨立的</span>
-    <span class="n">c2</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span> <span class="c">// 這不會解開 c 的鎖</span>
-<span class="p">}</span>
-</code></pre></div></div> <h3 id="3-忘記解鎖">3. 忘記解鎖</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Risk</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">someOperation</span><span class="p">();</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">err</span>  <span class="c">// 忘記解鎖！</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">d</span> <span class="o">*</span><span class="n">StarvationDemo</span><span class="p">)</span> <span class="n">ReadLoop</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">count</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">Microsecond</span><span class="p">)</span>
     <span class="p">}</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
-    <span class="k">return</span> <span class="no">nil</span>
 <span class="p">}</span>
 
-<span class="c">// 正確的做法</span>
-<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Safe</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-    <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">someOperation</span><span class="p">()</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">d</span> <span class="o">*</span><span class="n">StarvationDemo</span><span class="p">)</span> <span class="n">WriteLoop</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">count</span><span class="o">++</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">Millisecond</span><span class="p">)</span>
+    <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></div> <h2 id="效能優化建議">效能優化建議</h2> <ol> <li>減少鎖的範圍 ```go // 不好的做法 mu.Lock() // 大量非共享資源的操作 process(data) mu.Unlock()</li> </ol> <p>// 好的做法 data := getData() // 不需要鎖的操作放在外面 mu.Lock() // 只鎖定真正需要同步的操作 updateSharedData(data) mu.Unlock()</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-2. 使用細粒度鎖
-```go
-// 不好的做法
-type Database struct {
-    sync.Mutex
-    users    map[string]User
-    products map[string]Product
-}
+</code></pre></div></div> <h2 id="優化策略">優化策略</h2> <h3 id="1-降低鎖的粒度">1. 降低鎖的粒度</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">OptimizedCache</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">shards</span>    <span class="p">[]</span><span class="o">*</span><span class="n">cacheShard</span>
+    <span class="n">numShards</span> <span class="kt">int</span>
+    <span class="n">mask</span>      <span class="kt">uint32</span>
+<span class="p">}</span>
 
-// 好的做法
-type Database struct {
-    usersMu    sync.Mutex
-    users      map[string]User
-    productsMu sync.Mutex
-    products   map[string]Product
-}
-</code></pre></div></div> <h2 id="總結">總結</h2> <ol> <li>Mutex 是一個簡單但強大的同步原語</li> <li>了解其內部實現有助於正確使用和優化</li> <li>避免常見陷阱：重入、複製、忘記解鎖</li> <li>優化建議：最小化鎖範圍，使用細粒度鎖</li> </ol> <p>在下一篇文章中，我們將探討如何使用 Lock Striping 技術來優化全局鎖的性能。</p>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="mutex"/><category term="synchronization"/><summary type="html"><![CDATA[深入探討 Golang Mutex 的實現原理、使用方式和常見陷阱]]></summary></entry><entry><title type="html">Golang Mutex 的替代方案與優化策略</title><link href="https://edfun317.github.io/blog/2024/golang-mutex-optimization/" rel="alternate" type="text/html" title="Golang Mutex 的替代方案與優化策略"/><published>2024-05-12T04:30:00+00:00</published><updated>2024-05-12T04:30:00+00:00</updated><id>https://edfun317.github.io/blog/2024/golang-mutex-optimization</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/golang-mutex-optimization/"><![CDATA[<h2 id="前言">前言</h2> <p>在 Go 語言中，<code class="language-plaintext highlighter-rouge">sync.Mutex</code> 是最基本的同步原語之一，常被用於保護共享資源的訪問。然而，當在全局範圍內使用 Mutex 時，可能會帶來一些性能和可維護性的問題。本文將深入探討這些問題，並提供多種優化方向和替代方案。</p> <h2 id="目錄">目錄</h2> <ol> <li><a href="#mutex-基礎概念">Mutex 基礎概念</a> <ul> <li>Mutex 的工作原理</li> <li>全局 Mutex 的使用場景</li> <li>使用全局 Mutex 的潛在問題</li> </ul> </li> <li><a href="#lock-striping-分段鎖">Lock Striping 分段鎖</a> <ul> <li>原理與實現</li> <li>性能影響</li> <li>適用場景</li> </ul> </li> <li><a href="#無鎖設計-lock-free">無鎖設計 Lock-Free</a> <ul> <li>atomic 操作</li> <li>CAS (Compare-And-Swap)</li> <li>實現示例</li> </ul> </li> <li><a href="#讀寫分離">讀寫分離</a> <ul> <li>sync.RWMutex</li> <li>單寫多讀場景優化</li> <li>效能比較</li> </ul> </li> <li><a href="#channel-based-同步">Channel-based 同步</a> <ul> <li>CSP 模型應用</li> <li>worker pool 模式</li> <li>實現範例</li> </ul> </li> <li><a href="#並發數據結構">並發數據結構</a> <ul> <li>sync.Map</li> <li>並發安全的 slice 實現</li> <li>自定義並發數據結構</li> </ul> </li> <li><a href="#context-based-控制">Context-based 控制</a> <ul> <li>Context 在併發控制中的應用</li> <li>超時與取消機制</li> <li>最佳實踐</li> </ul> </li> <li><a href="#效能分析與優化">效能分析與優化</a> <ul> <li>常見效能瓶頸</li> <li>監控與分析工具</li> <li>優化策略</li> </ul> </li> <li><a href="#設計模式與最佳實踐">設計模式與最佳實踐</a> <ul> <li>常見的併發模式</li> <li>代碼組織方式</li> <li>錯誤處理策略</li> </ul> </li> </ol> <h2 id="待深入研究的方向">待深入研究的方向</h2> <p>接下來將針對每個章節進行深入研究，包括但不限於：</p> <ol> <li>各種方案的具體實現代碼</li> <li>效能測試與比較</li> <li>實際應用案例分析</li> <li>不同場景下的選擇建議</li> </ol> <h2 id="結論">結論</h2> <p>本文提供了一個框架，用於深入探討 Golang 中全局 Mutex 的替代方案和優化策略。每個方向都值得進行更詳細的研究和實驗，以找到最適合特定場景的解決方案。</p> <p>後續文章將針對每個章節進行更深入的技術探討和實踐分析。</p>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="mutex"/><category term="optimization"/><summary type="html"><![CDATA[深入探討 Golang Mutex 在全局使用時的優化方向與替代方案]]></summary></entry><entry><title type="html">a post with tabs</title><link href="https://edfun317.github.io/blog/2024/tabs/" rel="alternate" type="text/html" title="a post with tabs"/><published>2024-05-01T00:32:13+00:00</published><updated>2024-05-01T00:32:13+00:00</updated><id>https://edfun317.github.io/blog/2024/tabs</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/tabs/"><![CDATA[<p>This is how a post with <a href="https://github.com/Ovski4/jekyll-tabs">tabs</a> looks like. Note that the tabs could be used for different purposes, not only for code.</p> <h2 id="first-tabs">First tabs</h2> <p>To add tabs, use the following syntax:</p> <div class="language-liquid highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{%</span><span class="w"> </span><span class="nt">tabs</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="cp">%}</span>
+<span class="k">type</span> <span class="n">cacheShard</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
 
-<span class="cp">{%</span><span class="w"> </span><span class="nt">tab</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="nv">tab-name-1</span><span class="w"> </span><span class="cp">%}</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">OptimizedCache</span><span class="p">)</span> <span class="n">getShard</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="o">*</span><span class="n">cacheShard</span> <span class="p">{</span>
+    <span class="n">hash</span> <span class="o">:=</span> <span class="n">fnv</span><span class="o">.</span><span class="n">New32a</span><span class="p">()</span>
+    <span class="n">hash</span><span class="o">.</span><span class="n">Write</span><span class="p">([]</span><span class="kt">byte</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">shards</span><span class="p">[</span><span class="n">hash</span><span class="o">.</span><span class="n">Sum32</span><span class="p">()</span><span class="o">&amp;</span><span class="n">c</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span>
+<span class="p">}</span>
 
-Content 1
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">OptimizedCache</span><span class="p">)</span> <span class="n">Get</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="k">interface</span><span class="p">{},</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">shard</span> <span class="o">:=</span> <span class="n">c</span><span class="o">.</span><span class="n">getShard</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">shard</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">shard</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="n">val</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="n">shard</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span><span class="p">,</span> <span class="n">ok</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-複製優化">2. 複製優化</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">CopyOnWriteMap</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Value</span> <span class="c">// map[string]interface{}</span>
+<span class="p">}</span>
 
-<span class="cp">{%</span><span class="w"> </span><span class="nt">endtab</span><span class="w"> </span><span class="cp">%}</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">CopyOnWriteMap</span><span class="p">)</span> <span class="n">Set</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">,</span> <span class="n">value</span> <span class="k">interface</span><span class="p">{})</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">m</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    
+    <span class="n">oldData</span> <span class="o">:=</span> <span class="n">m</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Load</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{})</span>
+    <span class="n">newData</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{},</span> <span class="nb">len</span><span class="p">(</span><span class="n">oldData</span><span class="p">)</span><span class="o">+</span><span class="m">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">oldData</span> <span class="p">{</span>
+        <span class="n">newData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="p">}</span>
+    <span class="n">newData</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="n">newData</span><span class="p">)</span>
+<span class="p">}</span>
 
-<span class="cp">{%</span><span class="w"> </span><span class="nt">tab</span><span class="w"> </span><span class="nv">group-name</span><span class="w"> </span><span class="nv">tab-name-2</span><span class="w"> </span><span class="cp">%}</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">CopyOnWriteMap</span><span class="p">)</span> <span class="n">Get</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="k">interface</span><span class="p">{},</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">m</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">:=</span> <span class="n">m</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Load</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{})</span>
+    <span class="n">val</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span><span class="p">,</span> <span class="n">ok</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-讀寫分離">3. 讀寫分離</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">ReadWriteSplit</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">readCache</span>  <span class="n">atomic</span><span class="o">.</span><span class="n">Value</span>    <span class="c">// 只讀快照</span>
+    <span class="n">writeMu</span>    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>     <span class="c">// 寫入鎖</span>
+    <span class="n">dirtyData</span>  <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+    <span class="n">updated</span>    <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>  <span class="c">// 更新信號</span>
+<span class="p">}</span>
 
-Content 2
+<span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">ReadWriteSplit</span><span class="p">)</span> <span class="n">updateReadCache</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">rw</span><span class="o">.</span><span class="n">writeMu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">rw</span><span class="o">.</span><span class="n">writeMu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    
+    <span class="n">snapshot</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{},</span> <span class="nb">len</span><span class="p">(</span><span class="n">rw</span><span class="o">.</span><span class="n">dirtyData</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">rw</span><span class="o">.</span><span class="n">dirtyData</span> <span class="p">{</span>
+        <span class="n">snapshot</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="p">}</span>
+    <span class="n">rw</span><span class="o">.</span><span class="n">readCache</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="n">snapshot</span><span class="p">)</span>
+<span class="p">}</span>
 
-<span class="cp">{%</span><span class="w"> </span><span class="nt">endtab</span><span class="w"> </span><span class="cp">%}</span>
+<span class="k">func</span> <span class="p">(</span><span class="n">rw</span> <span class="o">*</span><span class="n">ReadWriteSplit</span><span class="p">)</span> <span class="n">Get</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="k">interface</span><span class="p">{},</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">data</span> <span class="o">:=</span> <span class="n">rw</span><span class="o">.</span><span class="n">readCache</span><span class="o">.</span><span class="n">Load</span><span class="p">()</span><span class="o">.</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{})</span>
+    <span class="n">val</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span><span class="p">,</span> <span class="n">ok</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="應用場景">應用場景</h2> <h3 id="1-配置管理">1. 配置管理</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Config</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">settings</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+    <span class="n">updates</span>  <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
 
-<span class="cp">{%</span><span class="w"> </span><span class="nt">endtabs</span><span class="w"> </span><span class="cp">%}</span>
-</code></pre></div></div> <p>With this you can generate visualizations like:</p> <ul id="log" class="tab" data-tab="0bc4758a-23f6-44ce-9975-0d929a073a52" data-name="log"> <li class="active" id="log-php"> <a href="#">php </a> </li> <li id="log-js"> <a href="#">js </a> </li> <li id="log-ruby"> <a href="#">ruby </a> </li> </ul> <ul class="tab-content" id="0bc4758a-23f6-44ce-9975-0d929a073a52" data-name="log"> <li class="active"> <div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">var_dump</span><span class="p">(</span><span class="s1">'hello'</span><span class="p">);</span>
-</code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">hello</span><span class="dl">"</span><span class="p">);</span>
-</code></pre></div></div> </li> <li> <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">pputs</span> <span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span>
-</code></pre></div></div> </li> </ul> <h2 id="another-example">Another example</h2> <ul id="data-struct" class="tab" data-tab="93b2720b-c121-4260-9e41-54a5168a8620" data-name="data-struct"> <li class="active" id="data-struct-yaml"> <a href="#">yaml </a> </li> <li id="data-struct-json"> <a href="#">json </a> </li> </ul> <ul class="tab-content" id="93b2720b-c121-4260-9e41-54a5168a8620" data-name="data-struct"> <li class="active"> <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">hello</span><span class="pi">:</span>
-  <span class="pi">-</span> <span class="s2">"</span><span class="s">whatsup"</span>
-  <span class="pi">-</span> <span class="s2">"</span><span class="s">hi"</span>
-</code></pre></div></div> </li> <li> <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"hello"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"whatsup"</span><span class="p">,</span><span class="w"> </span><span class="s2">"hi"</span><span class="p">]</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div> </li> </ul> <h2 id="tabs-for-something-else">Tabs for something else</h2> <ul id="something-else" class="tab" data-tab="1d1adf92-93be-4906-ac01-8777303fe700" data-name="something-else"> <li class="active" id="something-else-text"> <a href="#">text </a> </li> <li id="something-else-quote"> <a href="#">quote </a> </li> <li id="something-else-list"> <a href="#">list </a> </li> </ul> <ul class="tab-content" id="1d1adf92-93be-4906-ac01-8777303fe700" data-name="something-else"> <li class="active"> <p>Regular text</p> </li> <li> <blockquote> <p>A quote</p> </blockquote> </li> <li> <p>Hipster list</p> <ul> <li>brunch</li> <li>fixie</li> <li>raybans</li> <li>messenger bag</li> </ul> </li> </ul>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included tabs in a post could look like]]></summary></entry><entry><title type="html">a post with typograms</title><link href="https://edfun317.github.io/blog/2024/typograms/" rel="alternate" type="text/html" title="a post with typograms"/><published>2024-04-29T23:36:10+00:00</published><updated>2024-04-29T23:36:10+00:00</updated><id>https://edfun317.github.io/blog/2024/typograms</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/typograms/"><![CDATA[<p>This is an example post with some <a href="https://github.com/google/typograms/">typograms</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
-</span><span class="sb">+----+
-|    |---&gt; My first diagram!
-+----+</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-typograms">+----+
-|    |---&gt; My first diagram!
-+----+
-</code></pre> <p>Another example:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">typograms
-</span><span class="sb">.------------------------.
-|.----------------------.|
-||"https://example.com" ||
-|'----------------------'|
-| ______________________ |
-||                      ||
-||   Welcome!           ||
-||                      ||
-||                      ||
-||  .----------------.  ||
-||  | username       |  ||
-||  '----------------'  ||
-||  .----------------.  ||
-||  |"*******"       |  ||
-||  '----------------'  ||
-||                      ||
-||  .----------------.  ||
-||  |   "Sign-up"    |  ||
-||  '----------------'  ||
-||                      ||
-|+----------------------+|
-.------------------------.</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>which generates:</p> <pre><code class="language-typograms">.------------------------.
-|.----------------------.|
-||"https://example.com" ||
-|'----------------------'|
-| ______________________ |
-||                      ||
-||   Welcome!           ||
-||                      ||
-||                      ||
-||  .----------------.  ||
-||  | username       |  ||
-||  '----------------'  ||
-||  .----------------.  ||
-||  |"*******"       |  ||
-||  '----------------'  ||
-||                      ||
-||  .----------------.  ||
-||  |   "Sign-up"    |  ||
-||  '----------------'  ||
-||                      ||
-|+----------------------+|
-.------------------------.
-</code></pre> <p>For more examples, check out the <a href="https://google.github.io/typograms/#examples">typograms documentation</a>.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="diagrams"/><summary type="html"><![CDATA[this is what included typograms code could look like]]></summary></entry><entry><title type="html">a post that can be cited</title><link href="https://edfun317.github.io/blog/2024/post-citation/" rel="alternate" type="text/html" title="a post that can be cited"/><published>2024-04-28T15:06:00+00:00</published><updated>2024-04-28T15:06:00+00:00</updated><id>https://edfun317.github.io/blog/2024/post-citation</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/post-citation/"><![CDATA[<p>This is an example post that can be cited. The content of the post ends here, while the citation information is automatically provided below. The only thing needed is for you to set the <code class="language-plaintext highlighter-rouge">citation</code> key in the front matter to <code class="language-plaintext highlighter-rouge">true</code>.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="citation"/><summary type="html"><![CDATA[this is what a post that can be cited looks like]]></summary></entry><entry><title type="html">a post with pseudo code</title><link href="https://edfun317.github.io/blog/2024/pseudocode/" rel="alternate" type="text/html" title="a post with pseudo code"/><published>2024-04-15T00:01:00+00:00</published><updated>2024-04-15T00:01:00+00:00</updated><id>https://edfun317.github.io/blog/2024/pseudocode</id><content type="html" xml:base="https://edfun317.github.io/blog/2024/pseudocode/"><![CDATA[<p>This is an example post with some pseudo code rendered by <a href="https://github.com/SaswatPadhi/pseudocode.js">pseudocode</a>. The example presented here is the same as the one in the <a href="https://saswat.padhi.me/pseudocode.js/">pseudocode.js</a> documentation, with only one simple but important change: everytime you would use <code class="language-plaintext highlighter-rouge">$</code>, you should use <code class="language-plaintext highlighter-rouge">$$</code> instead. Also, note that the <code class="language-plaintext highlighter-rouge">pseudocode</code> key in the front matter is set to <code class="language-plaintext highlighter-rouge">true</code> to enable the rendering of pseudo code. As an example, using this code:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">pseudocode
-</span><span class="sb">% This quicksort algorithm is extracted from Chapter 7, Introduction to Algorithms (3rd edition)
-\begin{algorithm}
-\caption{Quicksort}
-\begin{algorithmic}
-\PROCEDURE{Quicksort}{$$A, p, r$$}
-    \IF{$$p &lt; r$$}
-        \STATE $$q = $$ \CALL{Partition}{$$A, p, r$$}
-        \STATE \CALL{Quicksort}{$$A, p, q - 1$$}
-        \STATE \CALL{Quicksort}{$$A, q + 1, r$$}
-    \ENDIF
-\ENDPROCEDURE
-\PROCEDURE{Partition}{$$A, p, r$$}
-    \STATE $$x = A[r]$$
-    \STATE $$i = p - 1$$
-    \FOR{$$j = p$$ \TO $$r - 1$$}
-        \IF{$$A[j] &lt; x$$}
-            \STATE $$i = i + 1$$
-            \STATE exchange
-            $$A[i]$$ with $$A[j]$$
-        \ENDIF
-        \STATE exchange $$A[i]$$ with $$A[r]$$
-    \ENDFOR
-\ENDPROCEDURE
-\end{algorithmic}
-\end{algorithm}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Generates:</p> <pre><code class="language-pseudocode">% This quicksort algorithm is extracted from Chapter 7, Introduction to Algorithms (3rd edition)
-\begin{algorithm}
-\caption{Quicksort}
-\begin{algorithmic}
-\PROCEDURE{Quicksort}{$$A, p, r$$}
-    \IF{$$p &lt; r$$}
-        \STATE $$q = $$ \CALL{Partition}{$$A, p, r$$}
-        \STATE \CALL{Quicksort}{$$A, p, q - 1$$}
-        \STATE \CALL{Quicksort}{$$A, q + 1, r$$}
-    \ENDIF
-\ENDPROCEDURE
-\PROCEDURE{Partition}{$$A, p, r$$}
-    \STATE $$x = A[r]$$
-    \STATE $$i = p - 1$$
-    \FOR{$$j = p$$ \TO $$r - 1$$}
-        \IF{$$A[j] &lt; x$$}
-            \STATE $$i = i + 1$$
-            \STATE exchange
-            $$A[i]$$ with $$A[j]$$
-        \ENDIF
-        \STATE exchange $$A[i]$$ with $$A[r]$$
-    \ENDFOR
-\ENDPROCEDURE
-\end{algorithmic}
-\end{algorithm}
-</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is what included pseudo code could look like]]></summary></entry></feed>
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Config</span><span class="p">)</span> <span class="n">WatchUpdates</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="k">range</span> <span class="n">c</span><span class="o">.</span><span class="n">updates</span> <span class="p">{</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="c">// 更新配置</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+        <span class="c">// 通知所有讀者</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Config</span><span class="p">)</span> <span class="n">GetSetting</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="k">interface</span><span class="p">{}</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">c</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-數據緩存">2. 數據緩存</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">CacheItem</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">Value</span>     <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">ExpiresAt</span> <span class="n">time</span><span class="o">.</span><span class="n">Time</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="n">Cache</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span>    <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="n">CacheItem</span>
+    <span class="n">cleanup</span> <span class="o">*</span><span class="n">time</span><span class="o">.</span><span class="n">Ticker</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Cache</span><span class="p">)</span> <span class="n">Get</span><span class="p">(</span><span class="n">key</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="k">interface</span><span class="p">{},</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="n">item</span><span class="p">,</span> <span class="n">exists</span> <span class="o">:=</span> <span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="o">!</span><span class="n">exists</span> <span class="o">||</span> <span class="n">time</span><span class="o">.</span><span class="n">Now</span><span class="p">()</span><span class="o">.</span><span class="n">After</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">ExpiresAt</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="no">nil</span><span class="p">,</span> <span class="no">false</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">Value</span><span class="p">,</span> <span class="no">true</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="性能測試">性能測試</h2> <h3 id="1-基準測試">1. 基準測試</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">BenchmarkRWMutex</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">B</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">rwm</span> <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span>
+    
+    <span class="n">b</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="s">"Read"</span><span class="p">,</span> <span class="k">func</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">B</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">RunParallel</span><span class="p">(</span><span class="k">func</span><span class="p">(</span><span class="n">pb</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">PB</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">pb</span><span class="o">.</span><span class="n">Next</span><span class="p">()</span> <span class="p">{</span>
+                <span class="n">rwm</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">"key"</span><span class="p">]</span>
+                <span class="n">rwm</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+    <span class="p">})</span>
+    
+    <span class="n">b</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="s">"Write"</span><span class="p">,</span> <span class="k">func</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">B</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">RunParallel</span><span class="p">(</span><span class="k">func</span><span class="p">(</span><span class="n">pb</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">PB</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">pb</span><span class="o">.</span><span class="n">Next</span><span class="p">()</span> <span class="p">{</span>
+                <span class="n">rwm</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+                <span class="n">data</span><span class="p">[</span><span class="s">"key"</span><span class="p">]</span> <span class="o">=</span> <span class="m">1</span>
+                <span class="n">rwm</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-讀寫比例測試">2. 讀寫比例測試</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">BenchmarkRWRatio</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">B</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ratios</span> <span class="o">:=</span> <span class="p">[]</span><span class="k">struct</span> <span class="p">{</span>
+        <span class="n">reads</span> <span class="kt">int</span>
+        <span class="n">writes</span> <span class="kt">int</span>
+    <span class="p">}{</span>
+        <span class="p">{</span><span class="m">99</span><span class="p">,</span> <span class="m">1</span><span class="p">},</span>   <span class="c">// 99% reads</span>
+        <span class="p">{</span><span class="m">90</span><span class="p">,</span> <span class="m">10</span><span class="p">},</span>  <span class="c">// 90% reads</span>
+        <span class="p">{</span><span class="m">75</span><span class="p">,</span> <span class="m">25</span><span class="p">},</span>  <span class="c">// 75% reads</span>
+        <span class="p">{</span><span class="m">50</span><span class="p">,</span> <span class="m">50</span><span class="p">},</span>  <span class="c">// 50% reads</span>
+    <span class="p">}</span>
+    
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ratio</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">ratios</span> <span class="p">{</span>
+        <span class="n">name</span> <span class="o">:=</span> <span class="n">fmt</span><span class="o">.</span><span class="n">Sprintf</span><span class="p">(</span><span class="s">"Reads:%d%%_Writes:%d%%"</span><span class="p">,</span> 
+            <span class="n">ratio</span><span class="o">.</span><span class="n">reads</span><span class="p">,</span> <span class="n">ratio</span><span class="o">.</span><span class="n">writes</span><span class="p">)</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">Run</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="k">func</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">B</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c">// 實現讀寫比例測試</span>
+        <span class="p">})</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="最佳實踐">最佳實踐</h2> <ol> <li><strong>選擇合適的場景</strong> <ul> <li>讀多寫少的場景優先使用 RWMutex</li> <li>讀寫比例接近時考慮普通 Mutex</li> <li>極端讀多寫少場景可以考慮 CopyOnWrite</li> </ul> </li> <li><strong>優化建議</strong> <ul> <li>減少鎖的持有時間</li> <li>考慮分片來減少鎖競爭</li> <li>適當使用緩存提高讀性能</li> </ul> </li> <li><strong>注意事項</strong> <ul> <li>避免在持有讀鎖時獲取寫鎖</li> <li>注意寫操作的飢餓問題</li> <li>合理設置分片數量</li> </ul> </li> </ol> <h2 id="總結">總結</h2> <p>RWMutex 是一個強大的併發控制工具，特別適合讀多寫少的場景。關鍵點：</p> <ol> <li>理解讀寫鎖的工作原理</li> <li>正確評估使用場景</li> <li>注意性能優化方向</li> <li>處理好寫操作飢餓問題</li> </ol> <p>在下一篇文章中，我們將探討如何使用 Channel 來實現更優雅的併發控制。</p> <h2 id="參考資料">參考資料</h2> <ol> <li><a href="https://golang.org/src/sync/rwmutex.go">Golang sync.RWMutex 源碼</a></li> <li><a href="https://golang.org/ref/mem">Go Memory Model</a></li> <li><a href="https://golang.org/doc/effective_go.html#concurrency">Effective Go</a></li> </ol>]]></content><author><name></name></author><category term="programming"/><category term="golang"/><category term="concurrency"/><category term="rwmutex"/><category term="performance"/><summary type="html"><![CDATA[深入探討 Golang RWMutex 的實現原理、性能特性和優化策略]]></summary></entry></feed>

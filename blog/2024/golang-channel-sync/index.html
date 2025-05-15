@@ -1,0 +1,292 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Golang Channel：CSP 模型下的併發控制 | Backend Engineer </title> <meta name="author" content="Ed Fan"> <meta name="description" content="探討如何使用 Golang Channel 實現優雅的併發控制，以及與傳統鎖機制的對比"> <meta name="keywords" content="backend-engineer, software-development, system-architecture, performance-optimization"> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?d41d8cd98f00b204e9800998ecf8427e"> <link rel="canonical" href="https://edfun317.github.io/blog/2024/golang-channel-sync/"> <script src="/assets/js/theme.js?a5ca4084d3b81624bcfa01156dae2b8e"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>initTheme();</script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Backend Engineer </a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item "> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item "> <a class="nav-link" href="/publications/">publications </a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects </a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">cv </a> </li> <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li> <li class="nav-item "> <a class="nav-link" href="/people/">people </a> </li> <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus </a> <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item " href="/publications/">publications</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/projects/">projects</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/blog/">blog</a> </div> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="ti ti-sun-moon" id="light-toggle-system"></i> <i class="ti ti-moon-filled" id="light-toggle-dark"></i> <i class="ti ti-sun-filled" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="post"> <header class="post-header"> <h1 class="post-title">Golang Channel：CSP 模型下的併發控制</h1> <p class="post-meta"> Created in May 12, 2024 </p> <p class="post-tags"> <a href="/blog/2024"> <i class="fa-solid fa-calendar fa-sm"></i> 2024 </a>   ·   <a href="/blog/tag/golang"> <i class="fa-solid fa-hashtag fa-sm"></i> golang</a>   <a href="/blog/tag/concurrency"> <i class="fa-solid fa-hashtag fa-sm"></i> concurrency</a>   <a href="/blog/tag/channel"> <i class="fa-solid fa-hashtag fa-sm"></i> channel</a>   <a href="/blog/tag/csp"> <i class="fa-solid fa-hashtag fa-sm"></i> csp</a>     ·   <a href="/blog/category/programming"> <i class="fa-solid fa-tag fa-sm"></i> programming</a>   </p> </header> <article class="post-content"> <div id="markdown-content"> <h2 id="channel-概述">Channel 概述</h2> <p>Channel 是 Go 語言中的一個核心特性，它實現了 CSP（Communicating Sequential Processes）模型，提供了一種優雅的 goroutine 間通信方式。相比傳統的鎖機制，Channel 更符合 Go 的設計哲學：”不要通過共享內存來通信，而是通過通信來共享內存”。</p> <h2 id="基本概念">基本概念</h2> <h3 id="1-channel-類型">1. Channel 類型</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 無緩衝 channel</span>
+<span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+
+<span class="c">// 有緩衝 channel</span>
+<span class="n">bufCh</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">10</span><span class="p">)</span>
+
+<span class="c">// 單向 channel</span>
+<span class="k">var</span> <span class="n">sendCh</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">int</span> <span class="c">// 只能發送</span>
+<span class="k">var</span> <span class="n">recvCh</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span> <span class="c">// 只能接收</span>
+</code></pre></div></div> <h3 id="2-基本操作">2. 基本操作</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 發送</span>
+<span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">value</span>
+
+<span class="c">// 接收</span>
+<span class="n">value</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+
+<span class="c">// 關閉</span>
+<span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+<span class="c">// 檢查是否關閉</span>
+<span class="n">value</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span>
+</code></pre></div></div> <h2 id="併發控制模式">併發控制模式</h2> <h3 id="1-互斥鎖替代">1. 互斥鎖替代</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Counter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="k">chan</span> <span class="kt">int</span>
+    <span class="n">value</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewCounter</span><span class="p">()</span> <span class="o">*</span><span class="n">Counter</span> <span class="p">{</span>
+    <span class="n">c</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">Counter</span><span class="p">{</span>
+        <span class="n">ch</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="n">delta</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="p">{</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="c">// 可以在這裡添加其他需要同步的操作</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="n">c</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Increment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="o">&lt;-</span> <span class="m">1</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span><span class="n">Counter</span><span class="p">)</span> <span class="n">Decrement</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">ch</span> <span class="o">&lt;-</span> <span class="o">-</span><span class="m">1</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-工作池模式">2. 工作池模式</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">WorkPool</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">jobs</span>    <span class="k">chan</span> <span class="n">Job</span>
+    <span class="n">results</span> <span class="k">chan</span> <span class="n">Result</span>
+    <span class="n">workers</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewWorkPool</span><span class="p">(</span><span class="n">workers</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">WorkPool</span> <span class="p">{</span>
+    <span class="n">pool</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">WorkPool</span><span class="p">{</span>
+        <span class="n">jobs</span><span class="o">:</span>    <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="n">Job</span><span class="p">),</span>
+        <span class="n">results</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="n">Result</span><span class="p">),</span>
+        <span class="n">workers</span><span class="o">:</span> <span class="n">workers</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pool</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">p</span><span class="o">.</span><span class="n">workers</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">job</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">jobs</span> <span class="p">{</span>
+                <span class="n">result</span> <span class="o">:=</span> <span class="n">job</span><span class="o">.</span><span class="n">Execute</span><span class="p">()</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">results</span> <span class="o">&lt;-</span> <span class="n">result</span>
+            <span class="p">}</span>
+        <span class="p">}()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Submit</span><span class="p">(</span><span class="n">job</span> <span class="n">Job</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">jobs</span> <span class="o">&lt;-</span> <span class="n">job</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">WorkPool</span><span class="p">)</span> <span class="n">Results</span><span class="p">()</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="n">Result</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">results</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-任務編排">3. 任務編排</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Pipeline</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewPipeline</span><span class="p">(</span><span class="n">input</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span>
+        <span class="n">input</span><span class="o">:</span>  <span class="n">input</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">Pipeline</span><span class="p">)</span> <span class="n">Transform</span><span class="p">(</span><span class="n">fn</span> <span class="k">func</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="n">out</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+            <span class="n">out</span> <span class="o">&lt;-</span> <span class="n">fn</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span><span class="n">input</span><span class="o">:</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="o">:</span> <span class="n">out</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">Pipeline</span><span class="p">)</span> <span class="n">Filter</span><span class="p">(</span><span class="n">fn</span> <span class="k">func</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="kt">bool</span><span class="p">)</span> <span class="o">*</span><span class="n">Pipeline</span> <span class="p">{</span>
+    <span class="n">out</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="n">fn</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">out</span> <span class="o">&lt;-</span> <span class="n">v</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">Pipeline</span><span class="p">{</span><span class="n">input</span><span class="o">:</span> <span class="n">p</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">output</span><span class="o">:</span> <span class="n">out</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="高級模式">高級模式</h2> <h3 id="1-超時控制">1. 超時控制</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">WithTimeout</span><span class="p">(</span><span class="n">ch</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="n">timeout</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">result</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">ch</span><span class="o">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="no">nil</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="n">time</span><span class="o">.</span><span class="n">After</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="m">0</span><span class="p">,</span> <span class="n">errors</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="s">"operation timed out"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c">// 使用示例</span>
+<span class="k">func</span> <span class="n">ProcessWithTimeout</span><span class="p">(</span><span class="n">data</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">)</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">result</span> <span class="o">:=</span> <span class="n">heavyProcessing</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">result</span>
+    <span class="p">}()</span>
+    <span class="k">return</span> <span class="n">WithTimeout</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="m">5</span><span class="o">*</span><span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-取消操作">2. 取消操作</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">CancellableOperation</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">done</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">op</span> <span class="o">*</span><span class="n">CancellableOperation</span><span class="p">)</span> <span class="n">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">{</span>
+            <span class="k">select</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">&lt;-</span><span class="n">op</span><span class="o">.</span><span class="n">done</span><span class="o">:</span>
+                <span class="k">return</span>
+            <span class="k">default</span><span class="o">:</span>
+                <span class="c">// 執行操作</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">100</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Millisecond</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">op</span> <span class="o">*</span><span class="n">CancellableOperation</span><span class="p">)</span> <span class="n">Cancel</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nb">close</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">done</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-廣播機制">3. 廣播機制</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">Broadcaster</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">source</span>  <span class="o">&lt;-</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">output</span>  <span class="p">[]</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">done</span>    <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">Broadcaster</span><span class="p">)</span> <span class="n">Subscribe</span><span class="p">()</span> <span class="o">&lt;-</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span> <span class="p">{</span>
+    <span class="n">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{})</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="nb">append</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ch</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">Broadcaster</span><span class="p">)</span> <span class="n">Broadcast</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ch</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+                <span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}()</span>
+        
+        <span class="k">for</span> <span class="p">{</span>
+            <span class="k">select</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">&lt;-</span><span class="n">b</span><span class="o">.</span><span class="n">done</span><span class="o">:</span>
+                <span class="k">return</span>
+            <span class="k">case</span> <span class="n">msg</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">b</span><span class="o">.</span><span class="n">source</span><span class="o">:</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">ch</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">b</span><span class="o">.</span><span class="n">output</span> <span class="p">{</span>
+                    <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">msg</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="效能優化">效能優化</h2> <h3 id="1-緩衝區大小選擇">1. 緩衝區大小選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">OptimalBufferSize</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">GOMAXPROCS</span><span class="p">(</span><span class="m">0</span><span class="p">)</span> <span class="o">*</span> <span class="m">2</span>
+<span class="p">}</span>
+
+<span class="c">// 根據負載自動調整緩衝區</span>
+<span class="k">type</span> <span class="n">AdaptiveChannel</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">ch</span>        <span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">size</span>      <span class="kt">int</span>
+    <span class="n">threshold</span> <span class="kt">float64</span>
+    <span class="n">mu</span>        <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">ac</span> <span class="o">*</span><span class="n">AdaptiveChannel</span><span class="p">)</span> <span class="n">resize</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">ac</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    
+    <span class="n">newSize</span> <span class="o">:=</span> <span class="n">ac</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">ac</span><span class="o">.</span><span class="n">loadFactor</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">ac</span><span class="o">.</span><span class="n">threshold</span> <span class="p">{</span>
+        <span class="n">newSize</span> <span class="o">*=</span> <span class="m">2</span>
+    <span class="p">}</span>
+    
+    <span class="n">newCh</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">interface</span><span class="p">{},</span> <span class="n">newSize</span><span class="p">)</span>
+    <span class="nb">close</span><span class="p">(</span><span class="n">ac</span><span class="o">.</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">ch</span> <span class="o">=</span> <span class="n">newCh</span>
+    <span class="n">ac</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">newSize</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-批處理模式">2. 批處理模式</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">BatchProcessor</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="k">chan</span> <span class="k">interface</span><span class="p">{}</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="p">[]</span><span class="k">interface</span><span class="p">{}</span>
+    <span class="n">size</span>   <span class="kt">int</span>
+    <span class="n">timer</span>  <span class="n">time</span><span class="o">.</span><span class="n">Duration</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">bp</span> <span class="o">*</span><span class="n">BatchProcessor</span><span class="p">)</span> <span class="n">Process</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">batch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">timer</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">NewTimer</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="k">select</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">item</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">bp</span><span class="o">.</span><span class="n">input</span><span class="o">:</span>
+            <span class="n">batch</span> <span class="o">=</span> <span class="nb">append</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span> <span class="p">{</span>
+                <span class="n">bp</span><span class="o">.</span><span class="n">output</span> <span class="o">&lt;-</span> <span class="n">batch</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">Reset</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="k">case</span> <span class="o">&lt;-</span><span class="n">timer</span><span class="o">.</span><span class="n">C</span><span class="o">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="m">0</span> <span class="p">{</span>
+                <span class="n">bp</span><span class="o">.</span><span class="n">output</span> <span class="o">&lt;-</span> <span class="n">batch</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="nb">make</span><span class="p">([]</span><span class="k">interface</span><span class="p">{},</span> <span class="m">0</span><span class="p">,</span> <span class="n">bp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">timer</span><span class="o">.</span><span class="n">Reset</span><span class="p">(</span><span class="n">bp</span><span class="o">.</span><span class="n">timer</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="實際應用">實際應用</h2> <h3 id="1-限流器">1. 限流器</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">RateLimiter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">tokens</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+    <span class="n">rate</span>   <span class="n">time</span><span class="o">.</span><span class="n">Duration</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewRateLimiter</span><span class="p">(</span><span class="n">rate</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">,</span> <span class="n">burst</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">RateLimiter</span> <span class="p">{</span>
+    <span class="n">rl</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">RateLimiter</span><span class="p">{</span>
+        <span class="n">tokens</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{},</span> <span class="n">burst</span><span class="p">),</span>
+        <span class="n">rate</span><span class="o">:</span>   <span class="n">rate</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">go</span> <span class="n">rl</span><span class="o">.</span><span class="n">fill</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">rl</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rl</span> <span class="o">*</span><span class="n">RateLimiter</span><span class="p">)</span> <span class="n">fill</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">ticker</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">NewTicker</span><span class="p">(</span><span class="n">rl</span><span class="o">.</span><span class="n">rate</span><span class="p">)</span>
+    <span class="k">defer</span> <span class="n">ticker</span><span class="o">.</span><span class="n">Stop</span><span class="p">()</span>
+    
+    <span class="k">for</span> <span class="k">range</span> <span class="n">ticker</span><span class="o">.</span><span class="n">C</span> <span class="p">{</span>
+        <span class="k">select</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">rl</span><span class="o">.</span><span class="n">tokens</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span><span class="o">:</span>
+        <span class="k">default</span><span class="o">:</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">rl</span> <span class="o">*</span><span class="n">RateLimiter</span><span class="p">)</span> <span class="n">Allow</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="n">rl</span><span class="o">.</span><span class="n">tokens</span><span class="o">:</span>
+        <span class="k">return</span> <span class="no">true</span>
+    <span class="k">default</span><span class="o">:</span>
+        <span class="k">return</span> <span class="no">false</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-並發控制器">2. 並發控制器</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">ConcurrencyController</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">semaphore</span> <span class="k">chan</span> <span class="k">struct</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">NewConcurrencyController</span><span class="p">(</span><span class="n">limit</span> <span class="kt">int</span><span class="p">)</span> <span class="o">*</span><span class="n">ConcurrencyController</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="n">ConcurrencyController</span><span class="p">{</span>
+        <span class="n">semaphore</span><span class="o">:</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{},</span> <span class="n">limit</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">cc</span> <span class="o">*</span><span class="n">ConcurrencyController</span><span class="p">)</span> <span class="n">Execute</span><span class="p">(</span><span class="n">task</span> <span class="k">func</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">cc</span><span class="o">.</span><span class="n">semaphore</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span>
+    <span class="k">go</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">defer</span> <span class="k">func</span><span class="p">()</span> <span class="p">{</span> <span class="o">&lt;-</span><span class="n">cc</span><span class="o">.</span><span class="n">semaphore</span> <span class="p">}()</span>
+        <span class="n">task</span><span class="p">()</span>
+    <span class="p">}()</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="最佳實踐">最佳實踐</h2> <ol> <li> <strong>選擇合適的 Channel 類型</strong> <ul> <li>無緩衝 channel 用於同步</li> <li>有緩衝 channel 用於異步</li> <li>根據場景選擇合適的緩衝大小</li> </ul> </li> <li> <strong>錯誤處理</strong> <ul> <li>使用 select 處理超時</li> <li>正確處理 channel 關閉</li> <li>避免向已關閉的 channel 發送數據</li> </ul> </li> <li> <strong>性能考慮</strong> <ul> <li>避免過多的 goroutine</li> <li>適當使用緩衝區</li> <li>考慮批處理優化</li> </ul> </li> </ol> <h2 id="結論">結論</h2> <p>Channel 是 Go 語言中一個強大的併發控制工具，它提供了：</p> <ol> <li>更清晰的併發模型</li> <li>更安全的數據共享方式</li> <li>更優雅的併發控制模式</li> </ol> <p>選擇 Channel 還是傳統鎖機制，需要根據具體場景：</p> <ol> <li>數據共享為主時，考慮鎖機制</li> <li>任務協調為主時，優先使用 Channel</li> <li>兩者結合使用時，注意避免死鎖</li> </ol> <p>在下一篇文章中，我們將探討如何在實際項目中結合多種併發控制技術。</p> <h2 id="參考資料">參考資料</h2> <ol> <li><a href="https://golang.org/doc/effective_go.html#channels" rel="external nofollow noopener" target="_blank">Effective Go</a></li> <li><a href="https://talks.golang.org/2012/concurrency.slide" rel="external nofollow noopener" target="_blank">Go Concurrency Patterns</a></li> <li><a href="https://talks.golang.org/2013/advconc.slide" rel="external nofollow noopener" target="_blank">Advanced Go Concurrency Patterns</a></li> </ol> </div> </article> <br> <hr> <br> <ul class="list-disc pl-8"></ul> <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2> <p class="mb-2">Here are some more articles you might like to read next:</p> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-rwmutex/">Golang RWMutex：讀寫分離的併發控制</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-lock-free/">Golang 無鎖編程：原子操作與 Lock-Free 設計</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/redis-hash-slots/">Redis Hash Slots and Sharding Mechanisms - Part 3</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-lock-striping/">Golang Lock Striping：提升併發性能的分段鎖實現</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/redis-cluster-mode/">Understanding Redis Cluster Mode - Part 2</a> </li> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Ed Fan. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?b7816bd189846d29eded8745f9c4cf77"></script> <script defer src="/assets/js/copy_code.js?12775fdf7f95e901d7119054556e495f" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script type="text/javascript">window.MathJax={tex:{tags:"ams"}};</script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.min.js"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script> <script type="text/javascript">function progressBarSetup(){"max"in document.createElement("progress")?(initializeProgressElement(),$(document).on("scroll",function(){progressBar.attr({value:getCurrentScrollPosition()})}),$(window).on("resize",initializeProgressElement)):(resizeProgressBar(),$(document).on("scroll",resizeProgressBar),$(window).on("resize",resizeProgressBar))}function getCurrentScrollPosition(){return $(window).scrollTop()}function initializeProgressElement(){let e=$("#navbar").outerHeight(!0);$("body").css({"padding-top":e}),$("progress-container").css({"padding-top":e}),progressBar.css({top:e}),progressBar.attr({max:getDistanceToScroll(),value:getCurrentScrollPosition()})}function getDistanceToScroll(){return $(document).height()-$(window).height()}function resizeProgressBar(){progressBar.css({width:getWidthPercentage()+"%"})}function getWidthPercentage(){return getCurrentScrollPosition()/getDistanceToScroll()*100}const progressBar=$("#progress");window.onload=function(){setTimeout(progressBarSetup,50)};</script> </body> </html>

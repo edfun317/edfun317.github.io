@@ -1,0 +1,123 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Golang 併發控制技術選擇指南 | Backend Engineer </title> <meta name="author" content="Ed Fan"> <meta name="description" content="總結各種 Golang 併發控制技術的特點，並提供實際應用場景的選擇建議"> <meta name="keywords" content="backend-engineer, software-development, system-architecture, performance-optimization"> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?d41d8cd98f00b204e9800998ecf8427e"> <link rel="canonical" href="https://edfun317.github.io/blog/2024/golang-concurrency-summary/"> <script src="/assets/js/theme.js?a5ca4084d3b81624bcfa01156dae2b8e"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>initTheme();</script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Backend Engineer </a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item "> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item "> <a class="nav-link" href="/publications/">publications </a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects </a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">cv </a> </li> <li class="nav-item "> <a class="nav-link" href="/teaching/">teaching </a> </li> <li class="nav-item "> <a class="nav-link" href="/people/">people </a> </li> <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus </a> <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item " href="/publications/">publications</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/projects/">projects</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/blog/">blog</a> </div> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="ti ti-sun-moon" id="light-toggle-system"></i> <i class="ti ti-moon-filled" id="light-toggle-dark"></i> <i class="ti ti-sun-filled" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="post"> <header class="post-header"> <h1 class="post-title">Golang 併發控制技術選擇指南</h1> <p class="post-meta"> Created in May 12, 2024 </p> <p class="post-tags"> <a href="/blog/2024"> <i class="fa-solid fa-calendar fa-sm"></i> 2024 </a>   ·   <a href="/blog/tag/golang"> <i class="fa-solid fa-hashtag fa-sm"></i> golang</a>   <a href="/blog/tag/concurrency"> <i class="fa-solid fa-hashtag fa-sm"></i> concurrency</a>   <a href="/blog/tag/performance"> <i class="fa-solid fa-hashtag fa-sm"></i> performance</a>   <a href="/blog/tag/optimization"> <i class="fa-solid fa-hashtag fa-sm"></i> optimization</a>     ·   <a href="/blog/category/programming"> <i class="fa-solid fa-tag fa-sm"></i> programming</a>   </p> </header> <article class="post-content"> <div id="markdown-content"> <h2 id="併發控制技術概覽">併發控制技術概覽</h2> <p>在探討了各種 Golang 併發控制技術後，本文將對這些技術進行綜合比較，並提供實際應用場景的選擇指南。我們將從性能、複雜度、適用場景等多個維度進行分析。</p> <h2 id="技術特點比較">技術特點比較</h2> <h3 id="1-mutex互斥鎖">1. Mutex（互斥鎖）</h3> <ul> <li> <strong>優點</strong> <ul> <li>使用簡單直接</li> <li>適合簡單的互斥需求</li> <li>內存佔用小</li> </ul> </li> <li> <strong>缺點</strong> <ul> <li>高併發下可能性能bottleneck</li> <li>容易導致死鎖</li> <li>不適合複雜的併發場景</li> </ul> </li> <li> <strong>適用場景</strong> <ul> <li>單一資源的互斥訪問</li> <li>短期持有的鎖</li> <li>低併發場景</li> </ul> </li> </ul> <h3 id="2-rwmutex讀寫鎖">2. RWMutex（讀寫鎖）</h3> <ul> <li> <strong>優點</strong> <ul> <li>支持並發讀操作</li> <li>適合讀多寫少場景</li> <li>實現相對簡單</li> </ul> </li> <li> <strong>缺點</strong> <ul> <li>寫操作可能產生飢餓</li> <li>讀寫比例失衡時性能下降</li> <li>額外的內存開銷</li> </ul> </li> <li> <strong>適用場景</strong> <ul> <li>讀多寫少的數據結構</li> <li>配置信息的訪問</li> <li>緩存數據的讀取</li> </ul> </li> </ul> <h3 id="3-lock-striping分段鎖">3. Lock Striping（分段鎖）</h3> <ul> <li> <strong>優點</strong> <ul> <li>顯著減少鎖競爭</li> <li>支持並行訪問不同段</li> <li>可以動態調整段數</li> </ul> </li> <li> <strong>缺點</strong> <ul> <li>實現複雜度高</li> <li>內存開銷較大</li> <li>可能產生數據分佈不均</li> </ul> </li> <li> <strong>適用場景</strong> <ul> <li>大規模併發訪問</li> <li>數據自然分段的場景</li> <li>高性能緩存系統</li> </ul> </li> </ul> <h3 id="4-lock-free無鎖">4. Lock-Free（無鎖）</h3> <ul> <li> <strong>優點</strong> <ul> <li>極高的併發性能</li> <li>無死鎖風險</li> <li>適合短期操作</li> </ul> </li> <li> <strong>缺點</strong> <ul> <li>實現極其複雜</li> <li>正確性難以保證</li> <li>可能出現 ABA 問題</li> </ul> </li> <li> <strong>適用場景</strong> <ul> <li>極限性能要求</li> <li>原子計數器</li> <li>隊列操作</li> </ul> </li> </ul> <h3 id="5-channel">5. Channel</h3> <ul> <li> <strong>優點</strong> <ul> <li>符合 Go 設計哲學</li> <li>較低的死鎖風險</li> <li>易於理解和維護</li> </ul> </li> <li> <strong>缺點</strong> <ul> <li>可能有額外的調度開銷</li> <li>不適合細粒度的訪問控制</li> <li>內存佔用較大</li> </ul> </li> <li> <strong>適用場景</strong> <ul> <li>消息傳遞</li> <li>任務編排</li> <li>事件驅動系統</li> </ul> </li> </ul> <h2 id="選擇指南">選擇指南</h2> <h3 id="1-基於場景特點選擇">1. 基於場景特點選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 簡單互斥場景</span>
+<span class="k">type</span> <span class="n">SimpleCounter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">count</span> <span class="kt">int</span>
+<span class="p">}</span>
+
+<span class="c">// 讀多寫少場景</span>
+<span class="k">type</span> <span class="n">Configuration</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">settings</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 高併發散列表</span>
+<span class="k">type</span> <span class="n">ConcurrentMap</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">shards</span>    <span class="p">[]</span><span class="o">*</span><span class="n">mapShard</span>
+    <span class="n">shardMask</span> <span class="kt">uint32</span>
+<span class="p">}</span>
+
+<span class="c">// 無鎖計數器</span>
+<span class="k">type</span> <span class="n">AtomicCounter</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">value</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+
+<span class="c">// 工作池模式</span>
+<span class="k">type</span> <span class="n">WorkPool</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">tasks</span>   <span class="k">chan</span> <span class="n">Task</span>
+    <span class="n">results</span> <span class="k">chan</span> <span class="n">Result</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-基於性能需求選擇">2. 基於性能需求選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 低併發場景：使用簡單互斥鎖</span>
+<span class="k">func</span> <span class="n">LowConcurrency</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">mu</span> <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">mu</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">mu</span><span class="o">.</span><span class="n">Unlock</span><span class="p">()</span>
+    <span class="c">// 操作共享資源</span>
+<span class="p">}</span>
+
+<span class="c">// 中等併發場景：使用讀寫鎖</span>
+<span class="k">func</span> <span class="n">MediumConcurrency</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">rwmu</span> <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">rwmu</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+    <span class="k">defer</span> <span class="n">rwmu</span><span class="o">.</span><span class="n">RUnlock</span><span class="p">()</span>
+    <span class="c">// 讀取操作</span>
+<span class="p">}</span>
+
+<span class="c">// 高併發場景：使用分段鎖</span>
+<span class="k">type</span> <span class="n">HighConcurrency</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">segment</span>
+    <span class="n">mask</span>     <span class="kt">uint32</span>
+<span class="p">}</span>
+
+<span class="c">// 極限性能場景：使用無鎖設計</span>
+<span class="k">type</span> <span class="n">UltraPerformance</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">value</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Value</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-基於複雜度選擇">3. 基於複雜度選擇</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 簡單業務邏輯：互斥鎖</span>
+<span class="k">type</span> <span class="n">SimpleService</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 中等複雜度：Channel</span>
+<span class="k">type</span> <span class="n">MessageBroker</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">input</span>  <span class="k">chan</span> <span class="n">Message</span>
+    <span class="n">output</span> <span class="k">chan</span> <span class="n">Result</span>
+<span class="p">}</span>
+
+<span class="c">// 複雜業務邏輯：混合方案</span>
+<span class="k">type</span> <span class="n">ComplexService</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">data</span>    <span class="o">*</span><span class="n">ConcurrentMap</span>    <span class="c">// 分段鎖</span>
+    <span class="n">cache</span>   <span class="o">*</span><span class="n">LockFreeCache</span>    <span class="c">// 無鎖緩存</span>
+    <span class="n">tasks</span>   <span class="k">chan</span> <span class="n">Task</span>         <span class="c">// 任務通道</span>
+    <span class="n">config</span>  <span class="o">*</span><span class="n">Configuration</span>    <span class="c">// 讀寫鎖</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="最佳實踐建議">最佳實踐建議</h2> <h3 id="1-循序漸進">1. 循序漸進</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// 第一步：使用簡單的互斥鎖</span>
+<span class="k">type</span> <span class="n">Initial</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">Mutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 第二步：升級到讀寫鎖</span>
+<span class="k">type</span> <span class="n">Improved</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">data</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c">// 第三步：引入分段設計</span>
+<span class="k">type</span> <span class="n">Advanced</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">Segment</span>
+<span class="p">}</span>
+
+<span class="c">// 最後：根據需要使用無鎖操作</span>
+<span class="k">type</span> <span class="n">Optimized</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">segments</span> <span class="p">[]</span><span class="o">*</span><span class="n">Segment</span>
+    <span class="n">counter</span>  <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="2-混合使用">2. 混合使用</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">HybridSystem</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="c">// 配置信息：讀寫鎖</span>
+    <span class="n">config</span> <span class="n">sync</span><span class="o">.</span><span class="n">RWMutex</span>
+    <span class="n">settings</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="k">interface</span><span class="p">{}</span>
+    
+    <span class="c">// 高頻計數：原子操作</span>
+    <span class="n">counter</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    
+    <span class="c">// 數據存儲：分段鎖</span>
+    <span class="n">store</span> <span class="o">*</span><span class="n">ShardedMap</span>
+    
+    <span class="c">// 任務處理：Channel</span>
+    <span class="n">tasks</span> <span class="k">chan</span> <span class="n">Task</span>
+<span class="p">}</span>
+</code></pre></div></div> <h3 id="3-監控與調優">3. 監控與調優</h3> <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">type</span> <span class="n">PerformanceMetrics</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">lockContentions</span> <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    <span class="n">lockWaitTime</span>    <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+    <span class="n">operations</span>      <span class="n">atomic</span><span class="o">.</span><span class="n">Int64</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span><span class="n">PerformanceMetrics</span><span class="p">)</span> <span class="n">Record</span><span class="p">(</span><span class="n">duration</span> <span class="n">time</span><span class="o">.</span><span class="n">Duration</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">operations</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="o">&gt;</span> <span class="n">threshold</span> <span class="p">{</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">lockContentions</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">lockWaitTime</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="kt">int64</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="決策流程">決策流程</h2> <ol> <li> <strong>評估場景需求</strong> <ul> <li>併發度</li> <li>讀寫比例</li> <li>性能要求</li> <li>複雜度接受度</li> </ul> </li> <li> <strong>選擇基礎方案</strong> <ul> <li>簡單場景 → Mutex</li> <li>讀多寫少 → RWMutex</li> <li>高併發 → Lock Striping</li> <li>極限性能 → Lock-Free</li> <li>任務協調 → Channel</li> </ul> </li> <li> <strong>優化與調整</strong> <ul> <li>監控性能指標</li> <li>識別瓶頸</li> <li>逐步改進</li> <li>混合使用不同技術</li> </ul> </li> </ol> <h2 id="總結">總結</h2> <p>選擇合適的併發控制技術需要綜合考慮：</p> <ol> <li> <strong>場景特點</strong> <ul> <li>併發度</li> <li>訪問模式</li> <li>數據特性</li> </ul> </li> <li> <strong>技術特點</strong> <ul> <li>實現複雜度</li> <li>維護成本</li> <li>性能特性</li> </ul> </li> <li> <strong>團隊因素</strong> <ul> <li>技術儲備</li> <li>維護能力</li> <li>開發週期</li> </ul> </li> </ol> <p>最終建議：</p> <ol> <li>從簡單方案開始</li> <li>基於數據優化</li> <li>持續監控調優</li> <li>適度超前設計</li> </ol> <h2 id="參考資料">參考資料</h2> <ol> <li><a href="https://golang.org/doc/" rel="external nofollow noopener" target="_blank">Golang 官方文檔</a></li> <li><a href="https://talks.golang.org/2012/concurrency.slide" rel="external nofollow noopener" target="_blank">Go Concurrency Patterns</a></li> <li><a href="https://golang.org/ref/mem" rel="external nofollow noopener" target="_blank">The Go Memory Model</a></li> <li><a href="https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html" rel="external nofollow noopener" target="_blank">High Performance Go Workshop</a></li> </ol> </div> </article> <br> <hr> <br> <ul class="list-disc pl-8"></ul> <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2> <p class="mb-2">Here are some more articles you might like to read next:</p> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-channel-sync/">Golang Channel：CSP 模型下的併發控制</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-rwmutex/">Golang RWMutex：讀寫分離的併發控制</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-lock-free/">Golang 無鎖編程：原子操作與 Lock-Free 設計</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-lock-striping/">Golang Lock Striping：提升併發性能的分段鎖實現</a> </li> <li class="my-2"> <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2024/golang-mutex-basic/">Golang Mutex 深入理解：原理、使用與陷阱</a> </li> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2025 Ed Fan. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?b7816bd189846d29eded8745f9c4cf77"></script> <script defer src="/assets/js/copy_code.js?12775fdf7f95e901d7119054556e495f" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script type="text/javascript">window.MathJax={tex:{tags:"ams"}};</script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.min.js"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script> <script type="text/javascript">function progressBarSetup(){"max"in document.createElement("progress")?(initializeProgressElement(),$(document).on("scroll",function(){progressBar.attr({value:getCurrentScrollPosition()})}),$(window).on("resize",initializeProgressElement)):(resizeProgressBar(),$(document).on("scroll",resizeProgressBar),$(window).on("resize",resizeProgressBar))}function getCurrentScrollPosition(){return $(window).scrollTop()}function initializeProgressElement(){let e=$("#navbar").outerHeight(!0);$("body").css({"padding-top":e}),$("progress-container").css({"padding-top":e}),progressBar.css({top:e}),progressBar.attr({max:getDistanceToScroll(),value:getCurrentScrollPosition()})}function getDistanceToScroll(){return $(document).height()-$(window).height()}function resizeProgressBar(){progressBar.css({width:getWidthPercentage()+"%"})}function getWidthPercentage(){return getCurrentScrollPosition()/getDistanceToScroll()*100}const progressBar=$("#progress");window.onload=function(){setTimeout(progressBarSetup,50)};</script> </body> </html>
