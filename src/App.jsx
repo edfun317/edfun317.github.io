@@ -39,7 +39,12 @@ const PORTFOLIO_CONTENT = {
     title: "Senior Backend Engineer",
     bio: "在冷冰冰的程式碼中，加入一點點溫暖。",
     bio_en: "Adding a touch of warmth to the realm of cold code.",
-    detailed_about: "專注於構建高效且可擴展的後端架構。除了技術之外，我認為程式碼應該是有溫度的，它是解決人類問題的工具。我熱愛攝影，這讓我學會從不同的視角看世界；我也熱愛閱讀，這幫助我在複雜的系統設計中保持思維的清晰與平靜。在開發過程中，我始終追求代碼的優雅與系統的穩健性。",
+    detailed_about: [
+      "擁有 10 年軟體開發經驗，其中 9 年專注於 Go，亦具備多種程式語言的前後端開發經驗。曾帶領小型技術團隊，負責多個專案的架構設計、技術演進與開發規範建立。",
+      "我相信，軟體工程真正的價值不只是完成需求，而是持續打造一套能夠長期演進的系統。因此，我特別重視系統的可靠性、可擴展性與資料正確性，曾導入 Clean Architecture、建立 Coding Standard 與 Code Review 機制，讓團隊在快速迭代的同時仍能維持良好的開發品質。",
+      "面對複雜問題時，我習慣從整體架構、資料流、效能瓶頸與隱性依賴關係切入，找出真正影響系統穩定性的根本原因，而不是只修正表面的問題。我享受將複雜系統逐步整理成更簡潔、更容易理解，也更容易維護的樣貌。",
+      "工作之外，我喜歡旅行與閱讀。旅行讓我習慣用不同的角度理解世界，也提醒自己每個問題都可能存在不同的解法；閱讀則幫助我持續吸收新的知識與思維，讓自己在快速變化的技術領域中保持學習與成長。"
+    ],
     tabs: { home: "首頁", about: "關於我", exp: "我的經歷" },
     time_label: "軟體開發累積時間",
     time_units: { y: "年", d: "日", h: "時", m: "分" },
@@ -59,7 +64,12 @@ const PORTFOLIO_CONTENT = {
     title: "Senior Backend Engineer",
     bio: "在冷冰冰的程式碼中，加入一點點溫暖。",
     bio_en: "Adding a touch of warmth to the realm of cold code.",
-    detailed_about: "Hi, I'm Alex. I specialize in building efficient and scalable backend architectures. Beyond technology, I believe code should carry human warmth—it is a tool for solving human problems. I love photography, which teaches me to see the world through different lenses, and reading, which helps me maintain clarity and peace amidst complex system designs.",
+    detailed_about: [
+      "I have 10 years of software development experience, 9 of which have been focused on Go, along with full-stack experience across multiple programming languages. I have led small engineering teams, responsible for architecture design, technical evolution, and establishing development standards across several projects.",
+      "I believe the true value of software engineering isn't just fulfilling requirements, but continuously building a system that can evolve over the long term. That's why I place strong emphasis on reliability, scalability, and data correctness — introducing Clean Architecture, establishing coding standards, and setting up code review practices that let teams iterate quickly without sacrificing quality.",
+      "When facing complex problems, I tend to start from the overall architecture, data flow, performance bottlenecks, and hidden dependencies to uncover the root causes affecting system stability, rather than just patching surface-level symptoms. I enjoy the process of gradually refactoring complex systems into something simpler, clearer, and easier to maintain.",
+      "Outside of work, I enjoy traveling and reading. Traveling has taught me to see the world from different perspectives and reminds me that every problem may have more than one solution. Reading helps me continuously absorb new knowledge and ways of thinking, keeping me learning and growing in a fast-changing technical field."
+    ],
     tabs: { home: "Home", about: "About", exp: "Experience" },
     time_label: "Accumulated Dev Time",
     time_units: { y: "Y", d: "D", h: "H", m: "M" },
@@ -252,9 +262,16 @@ const App = () => {
                   <div className="p-3 bg-white rounded-xl shadow-xs"><User size={26} /></div>
                   <h2 className="text-xl font-bold uppercase tracking-[0.25em]">Personal Narrative</h2>
                 </div>
-                <p className="text-lg md:text-xl leading-[2] text-[#5d5d5d] first-letter:text-6xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-[#3e2723] font-serif">
-                  {t.detailed_about}
-                </p>
+                <div className="space-y-6">
+                  {t.detailed_about.map((para, i) => (
+                    <p
+                      key={i}
+                      className={`text-lg md:text-xl leading-[2] text-[#5d5d5d] font-serif ${i === 0 ? 'first-letter:text-6xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-[#3e2723]' : ''}`}
+                    >
+                      {para}
+                    </p>
+                  ))}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-10">
                   <div className="bg-white/80 border border-[#e8e2d9] p-7 rounded-[2rem] flex items-center gap-5 hover:shadow-md transition-all group">
                     <div className="bg-[#faf8f5] p-3 rounded-xl group-hover:bg-[#8b7355] group-hover:text-white transition-colors"><Coffee size={24} /></div>
