@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { marked } from 'marked';
 import {
-  ChevronLeft,
-  ChevronRight,
   Mail,
   Github,
   Linkedin,
@@ -9,14 +8,15 @@ import {
   Clock,
   BookOpen,
   Coffee,
-  Briefcase,
   Languages,
   User,
-  Database,
   Terminal,
   Cpu,
-  Cloud
+  Cloud,
+  Tag,
+  ArrowLeft
 } from 'lucide-react';
+import { posts, categories } from './posts.js';
 
 // ==========================================
 // 1. 內容資料區 (Content Data)
@@ -45,18 +45,53 @@ const PORTFOLIO_CONTENT = {
       "面對複雜問題時，我習慣從整體架構、資料流、效能瓶頸與隱性依賴關係切入，找出真正影響系統穩定性的根本原因，而不是只修正表面的問題。我享受將複雜系統逐步整理成更簡潔、更容易理解，也更容易維護的樣貌。",
       "工作之外，我喜歡旅行與閱讀。旅行讓我習慣用不同的角度理解世界，也提醒自己每個問題都可能存在不同的解法；閱讀則幫助我持續吸收新的知識與思維，讓自己在快速變化的技術領域中保持學習與成長。"
     ],
-    tabs: { home: "首頁", about: "關於我", exp: "我的經歷" },
+    tabs: { home: "首頁", about: "關於我", skills: "技能", articles: "文章" },
+    articles_all_tag: "全部",
+    article_categories: {
+      ai: "AI Agent"
+    },
     time_label: "軟體開發累積時間",
     time_units: { y: "年", d: "日", h: "時", m: "分" },
-    exp_step: "階段",
     footer_quote: "保持好奇，持續成長",
     since: "計時開始於",
     skill_tree: "技術生態系",
-    experiences: [
-      { year: "2016 - 2017", title: "軟體開發新鮮人", desc: "開啟了與代碼對話的人生軌跡，初會前後端分離，API開發，程式碼重構。" },
-      { year: "2017 - 2023", title: "資深", desc: "專專注於分散式系統的優雅轉型，不僅優化效能，更重視團隊協作的溫度專注於分散式系統的優雅轉型，不僅優化效能，更重視團隊協作的溫度專注於分散式系統的優雅轉型，不僅優化效能，更重視團隊協作的溫度注於分散式系統的優雅轉型，不僅優化效能，更重視團隊協作的溫度。" },
-      { year: "2023 - 2024", title: "資深", desc: "專注於分散式系統的優雅轉型，不僅優化效能，更重視團隊協作的溫度。" },
-      { year: "2024 - 2025", title: "後端開發工程師", desc: "負責雲端原生應用開發，將複雜的技術規格轉化為直觀的服務流程。" }
+    skills: [
+      {
+        category: "核心技能",
+        icon: <Terminal size={18} />,
+        items: ["Go (8年+), Gin, Echo, FastHTTP", "RESTful API, WebSocket", "微服務架構"]
+      },
+      {
+        category: "架構設計",
+        icon: <Cpu size={18} />,
+        items: [
+          "系統架構設計與技術決策：評估技術方案並主導系統設計取捨",
+          "高併發／高可用系統設計",
+          "第三方系統整合設計（含支付系統）",
+          "Clean Architecture"
+        ]
+      },
+      {
+        category: "研發技術",
+        icon: <Cloud size={18} />,
+        items: [
+          "其他開發語言：PHP, React, Vue, Lua, Python",
+          "資料庫：MySQL, PostgreSQL, MongoDB, Redis",
+          "訊息驅動架構：RabbitMQ, Redis Pub/Sub, GCP Pub/Sub",
+          "雲平台：GCP, AWS",
+          "測試：Unit Testing, K6, PProf",
+          "其他：gRPC/ProtoBuf, ELK/EFK stack, Jaeger"
+        ]
+      },
+      {
+        category: "軟實力",
+        icon: <User size={18} />,
+        items: [
+          "擅長化繁為簡，將商業需求轉化為可落地的技術方案",
+          "自主推進與遠端協作：少監督下能獨立解決問題、持續交付",
+          "具備跨國/遠端團隊協作經驗"
+        ]
+      }
     ]
   },
   en: {
@@ -70,25 +105,55 @@ const PORTFOLIO_CONTENT = {
       "When facing complex problems, I tend to start from the overall architecture, data flow, performance bottlenecks, and hidden dependencies to uncover the root causes affecting system stability, rather than just patching surface-level symptoms. I enjoy the process of gradually refactoring complex systems into something simpler, clearer, and easier to maintain.",
       "Outside of work, I enjoy traveling and reading. Traveling has taught me to see the world from different perspectives and reminds me that every problem may have more than one solution. Reading helps me continuously absorb new knowledge and ways of thinking, keeping me learning and growing in a fast-changing technical field."
     ],
-    tabs: { home: "Home", about: "About", exp: "Experience" },
+    tabs: { home: "Home", about: "About", skills: "Skills", articles: "Articles" },
+    articles_all_tag: "All",
+    article_categories: {
+      ai: "AI Agent"
+    },
     time_label: "Accumulated Dev Time",
     time_units: { y: "Y", d: "D", h: "H", m: "M" },
-    exp_step: "Step",
     footer_quote: "Stay Curious & Keep Growing",
     since: "Counting since",
     skill_tree: "Skill Ecosystem",
-    experiences: [
-      { year: "2024 - Present", title: "Senior Architect", company: "Warmth Tech", desc: "Focusing on elegant transformation of distributed systems, prioritizing both performance and team collaboration." },
-      { year: "2021 - 2023", title: "Backend Developer", company: "Creative Lab", desc: "Responsible for cloud-native app development, translating complex technical specs into intuitive service flows." },
-      { year: "2018 - 2021", title: "Junior Developer", company: "Starting Point Studio", desc: "Started the journey of conversing with code, building a solid technical foundation in DB design." }
+    skills: [
+      {
+        category: "Core Skills",
+        icon: <Terminal size={18} />,
+        items: ["Go (8+ yrs), Gin, Echo, FastHTTP", "RESTful API, WebSocket", "Microservices Architecture"]
+      },
+      {
+        category: "Architecture",
+        icon: <Cpu size={18} />,
+        items: [
+          "System architecture design & technical decision-making: evaluating tradeoffs and leading design direction",
+          "High-concurrency / high-availability system design",
+          "Third-party system integration design (incl. payment systems)",
+          "Clean Architecture"
+        ]
+      },
+      {
+        category: "R&D",
+        icon: <Cloud size={18} />,
+        items: [
+          "Other languages: PHP, React, Vue, Lua, Python",
+          "Databases: MySQL, PostgreSQL, MongoDB, Redis",
+          "Message-driven architecture: RabbitMQ, Redis Pub/Sub, GCP Pub/Sub",
+          "Cloud platforms: GCP, AWS",
+          "Testing: Unit Testing, K6, PProf",
+          "Others: gRPC/ProtoBuf, ELK/EFK stack, Jaeger"
+        ]
+      },
+      {
+        category: "Soft Skills",
+        icon: <User size={18} />,
+        items: [
+          "Skilled at simplifying complexity — translating business needs into actionable technical solutions",
+          "Self-driven & remote collaboration: solves problems independently and delivers consistently with minimal oversight",
+          "Experience collaborating with cross-border / remote teams"
+        ]
+      }
     ]
-  },
-  skills: [
-    { category: "Backend Core", icon: <Terminal size={18} />, tech: ["Golang", "Java", "Python", "gRPC"] },
-    { category: "Storage", icon: <Database size={18} />, tech: ["PostgreSQL", "Redis", "Elasticsearch"] },
-    { category: "Cloud & Platform", icon: <Cloud size={18} />, tech: ["AWS", "GCP", "Terraform", "Serverless"] },
-    { category: "Infrastructure", icon: <Cpu size={18} />, tech: ["Docker", "Kubernetes", "CI/CD"] }
-  ]
+  }
 };
 
 // ==========================================
@@ -167,21 +232,37 @@ const DevTimeCard = ({ startDate, langData }) => {
   );
 };
 
+const ArticleDetail = ({ post, categoryLabel, onBack }) => (
+  <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <button
+      onClick={onBack}
+      className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#a39382] hover:text-[#5d4037] transition-colors mb-10"
+    >
+      <ArrowLeft size={16} /> Back
+    </button>
+    <span className="inline-block px-3 py-1 bg-[#faf8f5] text-[#8b7355] text-[10px] rounded-full border border-[#e8e2d9] font-medium tracking-widest mb-5">
+      {categoryLabel}
+    </span>
+    <h2 className="text-3xl md:text-4xl font-bold text-[#3e2723] leading-tight mb-3">{post.title}</h2>
+    <p className="text-[11px] text-[#bcaaa4] uppercase tracking-[0.2em] mb-10">{post.date}</p>
+    <div className="markdown-body" dangerouslySetInnerHTML={{ __html: marked.parse(post.content) }} />
+  </div>
+);
+
 // ==========================================
 // 3. 主程式組件
 // ==========================================
 const App = () => {
   const [lang, setLang] = useState('cn');
   const [activeTab, setActiveTab] = useState('home');
-  const [expIndex, setExpIndex] = useState(0);
+  const [activeTag, setActiveTag] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const t = PORTFOLIO_CONTENT[lang];
-  const experiences = t.experiences;
-  const currentExp = experiences[expIndex];
+  const filteredPosts = activeTag ? posts.filter((p) => p.tags.includes(activeTag)) : posts;
 
   const toggleLang = () => {
     setLang(prev => prev === 'cn' ? 'en' : 'cn');
-    setExpIndex(0);
   };
 
   return (
@@ -217,7 +298,7 @@ const App = () => {
               {Object.keys(t.tabs).map((key) => (
                 <button
                   key={key}
-                  onClick={() => setActiveTab(key)}
+                  onClick={() => { setActiveTab(key); setSelectedPost(null); }}
                   className={`pb-4 text-[12px] font-bold uppercase tracking-[0.25em] transition-all relative ${activeTab === key ? 'text-[#5d4037]' : 'text-[#bcaaa4] hover:text-[#8b7355]'}`}
                 >
                   {t.tabs[key]}
@@ -286,52 +367,8 @@ const App = () => {
             </div>
           )}
 
-          {activeTab === 'exp' && (
-            <div className="space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-1000 pt-4">
-              <div className="max-w-5xl mx-auto bg-white border border-[#e8e2d9] rounded-[3rem] p-10 md:p-16 shadow-[0_25px_50px_rgba(0,0,0,0.01)] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-[#a39382] group-hover:rotate-3 transition-transform duration-1000 select-none">
-                  <Briefcase size={220} />
-                </div>
-
-                <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-16">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-[#8b7355] bg-[#faf8f5] px-6 py-2 rounded-full border border-[#e8e2d9]">
-                      {t.exp_step} {expIndex + 1} / {experiences.length}
-                    </span>
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => setExpIndex(p => Math.max(0, p - 1))}
-                        disabled={expIndex === 0}
-                        className="w-12 h-12 rounded-full border border-[#e8e2d9] flex items-center justify-center disabled:opacity-20 hover:bg-[#5d4037] hover:text-white transition-all shadow-sm"
-                      >
-                        <ChevronLeft size={22} />
-                      </button>
-                      <button
-                        onClick={() => setExpIndex(p => Math.min(experiences.length - 1, p + 1))}
-                        disabled={expIndex === experiences.length - 1}
-                        className="w-12 h-12 rounded-full border border-[#e8e2d9] flex items-center justify-center disabled:opacity-20 hover:bg-[#5d4037] hover:text-white transition-all shadow-sm"
-                      >
-                        <ChevronRight size={22} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-12 gap-8 md:gap-20 items-center min-h-[220px]" key={expIndex}>
-                    <div className="md:col-span-5 space-y-3">
-                      <div className="text-[11px] font-bold text-[#8b7355] font-sans tracking-[0.2em] uppercase opacity-50">{currentExp.year}</div>
-                      <h2 className="text-3xl md:text-5xl font-bold text-[#3e2723] leading-tight mb-2">{currentExp.title}</h2>
-                      <p className="text-[#a39382] text-xl font-serif italic"> {currentExp.company}</p>
-                    </div>
-                    <div className="md:col-span-7">
-                      <div className="w-20 h-1 bg-[#e8e2d9] mb-8 rounded-full"></div>
-                      <p className="text-lg md:text-xl leading-[1.8] text-[#5d5d5d] font-sans font-light">
-                        {currentExp.desc}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+          {activeTab === 'skills' && (
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 pt-4">
               <div className="max-w-5xl mx-auto">
                 <div className="flex flex-col items-center mb-16">
                   <div className="h-px w-28 bg-[#e8e2d9] mb-6"></div>
@@ -341,7 +378,7 @@ const App = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative px-4">
-                  {PORTFOLIO_CONTENT.skills.map((skill, i) => (
+                  {t.skills.map((skill, i) => (
                     <div key={i} className="bg-white border border-[#e8e2d9] p-8 rounded-[2.5rem] shadow-sm hover:translate-y-[-8px] hover:shadow-lg transition-all duration-500 group">
                       <div className="flex flex-col items-center text-center">
                         <div className="p-5 bg-[#faf8f5] rounded-2xl text-[#8b7355] mb-8 group-hover:bg-[#5d4037] group-hover:text-white transition-all duration-500">
@@ -350,18 +387,64 @@ const App = () => {
                         <h4 className="font-bold text-[#3e2723] mb-8 tracking-[0.2em] text-[11px] uppercase border-b border-[#e8e2d9] pb-4 w-full">
                           {skill.category}
                         </h4>
-                        <div className="flex flex-wrap justify-center gap-3">
-                          {skill.tech.map(techItem => (
-                            <span key={techItem} className="px-3 py-1 bg-[#fdfbf7] text-[#8b7355] text-[10px] rounded-full border border-[#e8e2d9] font-medium tracking-widest hover:bg-[#e8e2d9] hover:text-white transition-colors cursor-default">
-                              {techItem}
-                            </span>
+                        <ul className="space-y-2.5 text-left w-full">
+                          {skill.items.map((item, j) => (
+                            <li key={j} className="text-[12px] text-[#5d5d5d] font-sans leading-relaxed flex gap-2">
+                              <span className="text-[#bcaaa4] shrink-0">–</span>
+                              <span>{item}</span>
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'articles' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {selectedPost ? (
+                <ArticleDetail post={selectedPost} categoryLabel={t.article_categories[selectedPost.category]} onBack={() => setSelectedPost(null)} />
+              ) : (
+                <div className="max-w-5xl mx-auto">
+                  <div className="flex flex-wrap justify-center gap-3 mb-14">
+                    <button
+                      onClick={() => setActiveTag(null)}
+                      className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] border transition-all ${!activeTag ? 'bg-[#5d4037] text-white border-[#5d4037]' : 'border-[#e8e2d9] text-[#a39382] hover:text-[#5d4037] hover:bg-white'}`}
+                    >
+                      <Tag size={12} /> {t.articles_all_tag}
+                    </button>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveTag(cat)}
+                        className={`px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.15em] border transition-all ${activeTag === cat ? 'bg-[#5d4037] text-white border-[#5d4037]' : 'border-[#e8e2d9] text-[#a39382] hover:text-[#5d4037] hover:bg-white'}`}
+                      >
+                        {t.article_categories[cat]}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {filteredPosts.map((post) => (
+                      <button
+                        key={post.slug}
+                        onClick={() => setSelectedPost(post)}
+                        className="text-left bg-white border border-[#e8e2d9] rounded-[2rem] p-8 shadow-sm hover:shadow-lg hover:translate-y-[-4px] transition-all duration-500"
+                      >
+                        <span className="inline-block px-2.5 py-0.5 bg-[#faf8f5] text-[#8b7355] text-[9px] rounded-full border border-[#e8e2d9] font-medium tracking-widest mb-4">
+                          {t.article_categories[post.category]}
+                        </span>
+                        <h3 className="text-xl font-bold text-[#3e2723] leading-snug mb-2">{post.title}</h3>
+                        <p className="text-sm text-[#5d5d5d] leading-relaxed line-clamp-3">{post.description}</p>
+                        <div className="text-[10px] text-[#bcaaa4] mt-5 uppercase tracking-widest">{post.date}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
