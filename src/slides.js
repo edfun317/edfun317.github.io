@@ -3,6 +3,7 @@ import {
   createIcons,
   ArrowRight,
   Award,
+  Bot,
   Cpu,
   GitCommitHorizontal,
   Layers,
@@ -19,6 +20,7 @@ import {
 const icons = {
   ArrowRight,
   Award,
+  Bot,
   Cpu,
   GitCommitHorizontal,
   Layers,

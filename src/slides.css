@@ -31,7 +31,7 @@
 /* Keeps the 16:9 card inside the viewport: width is capped by the deck's max
    width AND by whatever height is left once the nav bar and padding are taken. */
 .slide-stage {
-  width: min(72rem, 100%, calc((100vh - 9rem) * 16 / 9));
+  width: min(105rem, 100%, calc((100vh - 8rem) * 16 / 9));
   aspect-ratio: 16 / 9;
 }
 
