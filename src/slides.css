@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+
+@config "../tailwind.slides.config.js";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.grid-bg {
+  background-size: 28px 28px;
+}
+
+.glow-effect {
+  box-shadow: 0 0 50px -10px rgba(6, 182, 212, 0.15);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 50%, #10b981 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Keeps the 16:9 card inside the viewport: width is capped by the deck's max
+   width AND by whatever height is left once the nav bar and padding are taken. */
+.slide-stage {
+  width: min(72rem, 100%, calc((100vh - 9rem) * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+
+.card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(30, 35, 54, 0.08);
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-enter {
+  animation: slide-fade-in 0.4s ease-out both;
+}

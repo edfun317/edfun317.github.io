@@ -48,7 +48,8 @@ const PORTFOLIO_CONTENT = {
     tabs: { home: "首頁", about: "關於我", skills: "技能", articles: "文章" },
     articles_all_tag: "全部",
     article_categories: {
-      ai: "AI Agent"
+      ai: "AI Agent",
+      gcp: "GCP"
     },
     time_label: "軟體開發累積時間",
     time_units: { y: "年", d: "日", h: "時", m: "分" },
@@ -108,7 +109,8 @@ const PORTFOLIO_CONTENT = {
     tabs: { home: "Home", about: "About", skills: "Skills", articles: "Articles" },
     articles_all_tag: "All",
     article_categories: {
-      ai: "AI Agent"
+      ai: "AI Agent",
+      gcp: "GCP"
     },
     time_label: "Accumulated Dev Time",
     time_units: { y: "Y", d: "D", h: "H", m: "M" },

@@ -25,9 +25,12 @@ function parseFrontmatter(raw) {
 // Curated subset of _posts shown on the site, grouped into broad categories.
 // Only articles explicitly listed here appear on the site. Edit this map to
 // add/remove articles or move one into a different category.
-const CURATION = {};
+const CURATION = {
+  'gcp-pubsub-core-concepts': 'gcp',
+  'gcp-pubsub-subscription-mechanism': 'gcp'
+};
 
-export const categories = [];
+export const categories = ['gcp'];
 
 export const posts = Object.entries(rawModules)
   .map(([path, raw]) => {
