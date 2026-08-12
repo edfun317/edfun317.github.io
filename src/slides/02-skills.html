@@ -1,0 +1,142 @@
+<div class="w-full h-full bg-white text-slate-800 rounded-2xl shadow-xl border border-slate-100 flex flex-col p-6 sm:p-10 overflow-hidden">
+
+  <!-- 頁頭 Header -->
+  <div class="shrink-0 flex justify-between items-start">
+    <div>
+      <h1 class="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight">
+        技術能力
+      </h1>
+      <p class="text-lg sm:text-xl text-slate-500 font-medium mt-1">
+        主力是 Go 與分散式系統，其餘是專案需要時就上
+      </p>
+    </div>
+    <div class="hidden sm:flex items-center gap-2 text-sm font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+      <span data-slide-counter></span>
+    </div>
+  </div>
+
+  <!-- 技能卡片網格 -->
+  <div class="flex-1 min-h-0 grid grid-cols-3 grid-rows-2 gap-4 py-4">
+
+    <!-- 主力語言與框架 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="code-xml" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">主力語言與框架</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span><strong class="text-slate-900 font-bold">Go</strong>（9 年）</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>Gin ・ Echo ・ FastHTTP</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>gRPC ・ ProtoBuf</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>RESTful API ・ WebSocket</span></li>
+      </ul>
+    </div>
+
+    <!-- 架構 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="network" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">架構</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>微服務架構</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>Clean Architecture</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>訊息驅動：RabbitMQ ・ Pub/Sub</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span><strong class="text-slate-900 font-bold">高併發 / 高可用設計</strong></span></li>
+      </ul>
+    </div>
+
+    <!-- 資料 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="database" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">資料</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>MySQL ・ PostgreSQL</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>MongoDB ・ Redis</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>資料模型設計</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>索引與查詢優化</span></li>
+      </ul>
+    </div>
+
+    <!-- 雲端與維運 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="cloud" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">雲端與維運</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>GCP ・ AWS</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>GKE ・ Pub/Sub ・ Memorystore</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>Kubernetes</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>ELK / EFK ・ Jaeger</span></li>
+      </ul>
+    </div>
+
+    <!-- 驗證與效能 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="test-tube-diagonal" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">驗證與效能</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>單元測試</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>K6 壓力測試</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>PProf 效能剖析</span></li>
+      </ul>
+    </div>
+
+    <!-- 其他開發語言 -->
+    <div class="card-hover bg-brand-card/90 rounded-xl px-5 py-4 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="layers" class="w-5 h-5"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">其他開發語言</h3>
+      </div>
+      <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1">
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>PHP ・ Python ・ Lua ・ C#</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>React ・ Vue</span></li>
+        <li class="flex gap-2"><span class="text-slate-400">•</span><span>前後端整合經驗</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- 頁尾底欄：技術主軸演進橫條 -->
+  <div class="shrink-0 bg-brand-navy rounded-xl px-4 py-2.5 text-white flex items-center justify-between gap-3 shadow-md">
+    <div class="flex items-center gap-2 text-sm font-bold shrink-0 text-amber-400">
+      <i data-lucide="git-commit-horizontal" class="w-3.5 h-3.5"></i>
+      <span>技術主軸</span>
+    </div>
+    <div class="flex items-center flex-wrap justify-end gap-x-1.5 gap-y-1 text-xs font-medium text-slate-200">
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">PHP</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 font-semibold">Go 微服務</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">高併發交易系統</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">遊戲邏輯</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">雲服務</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/60 font-semibold">Tech Lead</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">訊息推播系統</span>
+      <span class="text-slate-500">➔</span>
+      <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-semibold">支付整合</span>
+    </div>
+  </div>
+
+</div>

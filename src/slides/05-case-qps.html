@@ -1,0 +1,119 @@
+<div class="w-full h-full bg-white text-slate-800 rounded-2xl shadow-xl border border-slate-100 flex flex-col p-6 sm:p-10 overflow-hidden">
+
+  <!-- 頁頭 Header -->
+  <div class="shrink-0 flex justify-between items-start">
+    <div>
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        案例一 <span class="text-slate-300">/</span> 下注交易系統重構
+      </h1>
+      <p class="text-base sm:text-lg text-slate-500 font-medium mt-1">
+        先拆解資料職責，再配置獨立資源
+      </p>
+    </div>
+    <div class="hidden sm:flex items-center gap-2 text-sm font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+      <span data-slide-counter></span>
+    </div>
+  </div>
+
+  <!-- STAR 主體 -->
+  <div class="flex-1 min-h-0 flex flex-col gap-4 py-5">
+
+    <!-- 上排：Situation 與 Task 左右並列 -->
+    <div class="shrink-0 grid grid-cols-12 gap-4">
+
+      <div class="col-span-7 card-hover bg-brand-card/90 rounded-xl px-5 py-3.5 border border-slate-200/50">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          </span>
+          <h3 class="text-lg font-bold text-slate-900">Situation</h3>
+        </div>
+        <ul class="grid grid-cols-2 gap-x-5 gap-y-1.5 text-base text-slate-700 font-medium leading-relaxed">
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>尖峰 <strong class="text-white font-extrabold bg-amber-600 px-1.5 py-0.5 rounded">7,000 QPS</strong> 即不穩</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>Loading 大幅波動</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>Secondary 複製落後</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>連線與 goroutine 堆積</span></li>
+        </ul>
+      </div>
+
+      <div class="col-span-5 card-hover bg-brand-card/90 rounded-xl px-5 py-3.5 border border-slate-200/50">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+            <i data-lucide="target" class="w-4 h-4"></i>
+          </span>
+          <h3 class="text-lg font-bold text-slate-900">Task</h3>
+        </div>
+        <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1.5">
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>找出根因，不靠擴機掩蓋</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>穩定尖峰承載</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- 下排：Action 佔滿寬度 -->
+    <div class="flex-1 min-h-0 card-hover bg-brand-card/90 rounded-xl px-6 py-4 border border-blue-300/50 ring-1 ring-blue-200/40 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center shrink-0">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">Action</h3>
+      </div>
+
+      <div class="flex-1 flex flex-col justify-center gap-3.5 text-base text-slate-700 font-medium leading-relaxed">
+
+        <!-- 定位 → 排除 → 根因 的推導鏈 -->
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700">
+            <i data-lucide="search" class="w-4 h-4 text-blue-600"></i>監控波動
+          </span>
+          <span class="text-slate-400">➔</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-700">
+            Secondary 落後
+          </span>
+          <span class="text-slate-400">➔</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-sm font-semibold text-slate-500">
+            <i data-lucide="circle-check" class="w-4 h-4 text-slate-400"></i>排除連線池 / 讀寫分離
+          </span>
+        </div>
+
+        <!-- 根因 -->
+        <div class="bg-white/80 border-l-4 border-blue-500 rounded-r-lg px-4 py-2.5">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">根因</span>
+          <p class="mt-0.5">
+            單一 collection 同時扛<strong class="text-slate-900 font-bold">寫入與查詢</strong>，Secondary 追不上 oplog
+          </p>
+        </div>
+
+        <!-- 決策 -->
+        <div>
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">
+            <i data-lucide="git-branch" class="w-4 h-4"></i> 決策
+          </div>
+          <ul class="grid grid-cols-2 gap-x-6 gap-y-1.5">
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>依職責拆 <strong class="text-slate-900 font-bold">狀態 / 投注 / 贏分</strong>，各配獨立機器</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>狀態走<strong class="text-slate-900 font-bold">狀態機</strong>驗證</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>完成即刪，<strong class="text-slate-900 font-bold">資料量最小化</strong></span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>成單改<strong class="text-slate-900 font-bold">非同步</strong>；導入<strong class="text-slate-900 font-bold">冪等性</strong>可重送補單</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 頁尾：Result -->
+  <div class="shrink-0 bg-brand-navy rounded-xl px-5 py-3 text-white flex items-center justify-between gap-3 shadow-md">
+    <div class="flex items-center gap-2 text-sm font-bold shrink-0 text-emerald-400">
+      <i data-lucide="trending-up" class="w-4 h-4"></i>
+      <span>Result</span>
+    </div>
+    <div class="flex items-center flex-wrap justify-end gap-x-2 gap-y-1 text-sm font-medium text-slate-200">
+      <span class="px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-bold">7,000 不穩 ➔ 8,000+ 穩定</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">事故未再發生</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">複製延遲消除</span>
+    </div>
+  </div>
+
+</div>
