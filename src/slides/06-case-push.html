@@ -1,0 +1,123 @@
+<div class="w-full h-full bg-white text-slate-800 rounded-2xl shadow-xl border border-slate-100 flex flex-col p-6 sm:p-10 overflow-hidden">
+
+  <!-- 頁頭 Header -->
+  <div class="shrink-0 flex justify-between items-start">
+    <div>
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        案例二 <span class="text-slate-300">/</span> 全公司推播系統收攏
+      </h1>
+      <p class="text-base sm:text-lg text-slate-500 font-medium mt-1">
+        跨部門整併，從零打造高承載推播平台
+      </p>
+    </div>
+    <div class="hidden sm:flex items-center gap-2 text-sm font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+      <span data-slide-counter></span>
+    </div>
+  </div>
+
+  <!-- STAR 主體 -->
+  <div class="flex-1 min-h-0 flex flex-col gap-4 py-5">
+
+    <!-- 上排：Situation 與 Task 左右並列 -->
+    <div class="shrink-0 grid grid-cols-12 gap-4">
+
+      <div class="col-span-7 card-hover bg-brand-card/90 rounded-xl px-5 py-3.5 border border-slate-200/50">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          </span>
+          <h3 class="text-lg font-bold text-slate-900">Situation</h3>
+        </div>
+        <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1.5">
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>執行長要求將既有推播<strong class="text-slate-900 font-bold">收攏為單一系統</strong></span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>舊系統分散在<strong class="text-slate-900 font-bold">各部門</strong>，各自維護</span></li>
+        </ul>
+      </div>
+
+      <div class="col-span-5 card-hover bg-brand-card/90 rounded-xl px-5 py-3.5 border border-slate-200/50">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-8 h-8 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+            <i data-lucide="target" class="w-4 h-4"></i>
+          </span>
+          <h3 class="text-lg font-bold text-slate-900">Task</h3>
+        </div>
+        <ul class="text-base text-slate-700 font-medium leading-relaxed space-y-1.5">
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>盤點全公司相關服務</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>確認各部門待收攏的訊息系統</span></li>
+          <li class="flex gap-2"><span class="text-slate-400">•</span><span>開發新的推播系統</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- 下排：Action 佔滿寬度 -->
+    <div class="flex-1 min-h-0 card-hover bg-brand-card/90 rounded-xl px-6 py-4 border border-blue-300/50 ring-1 ring-blue-200/40 flex flex-col">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center shrink-0">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+        </span>
+        <h3 class="text-lg font-bold text-slate-900">Action</h3>
+      </div>
+
+      <div class="flex-1 grid grid-cols-2 gap-x-8 gap-y-3 text-base text-slate-700 font-medium leading-relaxed content-center">
+
+        <div>
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider mb-1.5">
+            <i data-lucide="cloud" class="w-4 h-4"></i> 技術選型
+          </div>
+          <ul class="space-y-1">
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>服務已在 GCP，<strong class="text-slate-900 font-bold">Pub/Sub</strong> 整合成本最低</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>Subscription 的機制符合應用場景，<strong class="text-slate-900 font-bold">壓力測試過後</strong>覺得表現符合期望</span></li>
+
+          </ul>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider mb-1.5">
+            <i data-lucide="zap" class="w-4 h-4"></i> 吞吐設計
+          </div>
+          <ul class="space-y-1">
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>以<strong class="text-slate-900 font-bold">批次</strong>為發布單位，佇列訊息數大幅降低</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>固定大小 <strong class="text-slate-900 font-bold">goroutine pool</strong> 消費，避免打爆下游</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span><strong class="text-slate-900 font-bold">批次寫入</strong>取代逐筆，降低 DB round trip</span></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider mb-1.5">
+            <i data-lucide="git-branch" class="w-4 h-4"></i> 遷移策略
+          </div>
+          <ul class="space-y-1">
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>提供<strong class="text-slate-900 font-bold">相容層 / API</strong>，降低各部門遷移成本</span></li>
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>新舊<strong class="text-slate-900 font-bold">並行雙寫</strong>比對，確認無誤才切換</span></li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-1.5 text-xs font-bold text-blue-700 uppercase tracking-wider mb-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4"></i> 可靠性
+          </div>
+          <ul class="space-y-1">
+            <li class="flex gap-2"><span class="text-slate-400">•</span><span>確認<strong class="text-slate-900 font-bold">寫入完成才 Ack</strong>，避免 Worker 被回收時遺失訊息</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 頁尾：Result -->
+  <div class="shrink-0 bg-brand-navy rounded-xl px-5 py-3 text-white flex items-center justify-between gap-3 shadow-md">
+    <div class="flex items-center gap-2 text-sm font-bold shrink-0 text-emerald-400">
+      <i data-lucide="trending-up" class="w-4 h-4"></i>
+      <span>Result</span>
+    </div>
+    <div class="flex items-center flex-wrap justify-end gap-x-2 gap-y-1 text-sm font-medium text-slate-200">
+      <span class="px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-bold">達成每分鐘 20 萬筆推播</span>
+      <span class="px-2.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 font-semibold">K6 壓測穩定 30 萬筆／分</span>
+      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">跨部門推播收斂為單一平台</span>
+    </div>
+  </div>
+
+</div>

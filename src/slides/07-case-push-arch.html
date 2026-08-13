@@ -1,0 +1,111 @@
+<div class="w-full h-full bg-white text-slate-800 rounded-2xl shadow-xl border border-slate-100 flex flex-col p-6 sm:p-10 overflow-hidden">
+
+  <!-- 頁頭 Header -->
+  <div class="shrink-0 flex justify-between items-start">
+    <div>
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        案例二 <span class="text-slate-300">/</span> 推播系統架構, 每分鐘20萬筆推播
+      </h1>
+      <p class="text-base sm:text-lg text-slate-500 font-medium mt-1">
+        觸發 ➔ Pub/Sub ➔ 資料處理 ➔ MemoryStore ➔ 推送分流
+      </p>
+    </div>
+    <div class="hidden sm:flex items-center gap-2 text-sm font-mono font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg">
+      <span data-slide-counter></span>
+    </div>
+  </div>
+
+  <!-- 架構流程圖 -->
+  <div class="flex-1 min-h-0 flex items-center gap-2 py-6">
+
+    <!-- Stage 1：觸發來源 -->
+    <div class="flex-1 h-full card-hover bg-brand-card/90 rounded-2xl px-4 py-5 border border-slate-200/50 flex flex-col">
+      <div class="flex items-center gap-2.5 mb-4 shrink-0">
+        <span class="w-9 h-9 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0">
+          <i data-lucide="zap" class="w-5 h-5"></i>
+        </span>
+        <div>
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Stage 1</div>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">觸發來源</h3>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col justify-center gap-2.5">
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">手動推播</div>
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">排程推播</div>
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">系統推播</div>
+      </div>
+    </div>
+
+    <i data-lucide="arrow-right" class="w-6 h-6 shrink-0 text-slate-300"></i>
+
+    <!-- 中介：GCP Pub/Sub -->
+    <div class="shrink-0 w-32 h-full flex flex-col items-center justify-center gap-2 bg-blue-50/60 border-2 border-dashed border-blue-300 rounded-2xl px-3 py-5">
+      <span class="w-11 h-11 rounded-full bg-brand-blue text-white flex items-center justify-center">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+      </span>
+      <div class="text-center">
+        <div class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Queue</div>
+        <div class="text-base font-bold text-slate-900 leading-tight mt-0.5">GCP<br>Pub/Sub</div>
+      </div>
+    </div>
+
+    <i data-lucide="arrow-right" class="w-6 h-6 shrink-0 text-slate-300"></i>
+
+    <!-- Stage 2：資料處理 -->
+    <div class="flex-1 h-full card-hover bg-brand-card/90 rounded-2xl px-4 py-5 border border-blue-300/50 ring-1 ring-blue-200/40 flex flex-col">
+      <div class="flex items-center gap-2.5 mb-4 shrink-0">
+        <span class="w-9 h-9 rounded-full bg-brand-blue text-white flex items-center justify-center shrink-0">
+          <i data-lucide="wrench" class="w-5 h-5"></i>
+        </span>
+        <div>
+          <div class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Stage 2</div>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">資料處理</h3>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col justify-center gap-2.5">
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">資料落地</div>
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">資料清洗</div>
+        <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">寫入 MemoryStore</div>
+      </div>
+    </div>
+
+    <i data-lucide="arrow-right" class="w-6 h-6 shrink-0 text-slate-300"></i>
+
+    <!-- 中介：MemoryStore -->
+    <div class="shrink-0 w-32 h-full flex flex-col items-center justify-center gap-2 bg-emerald-50/60 border-2 border-dashed border-emerald-300 rounded-2xl px-3 py-5">
+      <span class="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+        <i data-lucide="database" class="w-5 h-5"></i>
+      </span>
+      <div class="text-center">
+        <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Cache</div>
+        <div class="text-base font-bold text-slate-900 leading-tight mt-0.5">Memory<br>Store</div>
+      </div>
+    </div>
+
+    <i data-lucide="arrow-right" class="w-6 h-6 shrink-0 text-slate-300"></i>
+
+    <!-- Stage 3：推送分流 -->
+    <div class="flex-1 h-full card-hover bg-brand-card/90 rounded-2xl px-4 py-5 border border-emerald-300/50 ring-1 ring-emerald-200/40 flex flex-col">
+      <div class="flex items-center gap-2.5 mb-4 shrink-0">
+        <span class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+          <i data-lucide="network" class="w-5 h-5"></i>
+        </span>
+        <div>
+          <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Stage 3</div>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">推送分流</h3>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col justify-center gap-2.5">
+        <div class="bg-white rounded-lg border border-emerald-300 px-3 py-2.5 text-base font-bold text-emerald-700">
+          Sub <span class="font-mono text-sm">fan-out</span>
+        </div>
+        <div class="pl-3 border-l-2 border-emerald-200 ml-1.5 space-y-2.5">
+          <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">離線推播</div>
+          <div class="bg-white rounded-lg border border-slate-200 px-3 py-2.5 text-base font-semibold text-slate-700">WebSocket 推播<br><span class="text-sm text-slate-500">（含分組）</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
